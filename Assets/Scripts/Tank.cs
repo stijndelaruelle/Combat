@@ -40,6 +40,8 @@ public class Tank : MonoBehaviour
     private int m_MaxHealth = 1;
     private int m_Health = 1;
 
+    private bool m_PressToMove = false;
+
     public bool IsDead
     {
         get { return (m_Health <= 0); }
@@ -68,6 +70,12 @@ public class Tank : MonoBehaviour
     {
         if (IsDead || !InputEnabled) return;
 
+        //Set your move option
+        if (Input.GetButtonDown("MoveOption_Joystick" + (m_PlayerID + 1)))
+        {
+            m_PressToMove = !m_PressToMove;
+        }
+
         //Rotating
         float xAxis = Input.GetAxis("RotateHorizontal_Joystick" + (m_PlayerID + 1));
         float yAxis = Input.GetAxis("RotateVertical_Joystick" + (m_PlayerID + 1));
@@ -83,9 +91,10 @@ public class Tank : MonoBehaviour
         //Moving
         float move = Input.GetAxis("Move_Joystick" + (m_PlayerID + 1));
 
-        if (move > 0.0f)
+        if (move > 0.0f || !m_PressToMove)
         {
-            Vector2 velocity = transform.right * m_MoveSpeed * Time.deltaTime;
+            float speedMultiplier = Mathf.Max(Mathf.Abs(xAxis), Mathf.Abs(yAxis));
+            Vector2 velocity = transform.right * (speedMultiplier * m_MoveSpeed) * Time.deltaTime;
             transform.Translate(velocity, Space.World);
         }
 	}
@@ -97,9 +106,8 @@ public class Tank : MonoBehaviour
 
         if (OnHit != null) OnHit(otherPlayerID);
 
-        //You can't die from your own bullets in the single bullet gamemode
-        if (GameplayManager.Instance.CurrentGameMode == global::GameplayManager.GameMode.SingleBulletMode &&
-            m_PlayerID == otherPlayerID)
+        //You can't die from your own bullets right now
+        if (m_PlayerID == otherPlayerID) // && GameplayManager.Instance.CurrentGameMode == global::GameplayManager.GameMode.SingleBulletMode
         {
             return;
         }

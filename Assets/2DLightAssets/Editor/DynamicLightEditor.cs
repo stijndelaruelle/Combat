@@ -5,14 +5,14 @@ using System.Collections;
 [CustomEditor (typeof (DynamicLight))] 
 public class DynamicLightEditor : Editor {
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Add Light Point")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Add Light Point")]
 	static void Create(){
 		GameObject gameObject = new GameObject("2DLight");
 		DynamicLight s = gameObject.AddComponent<DynamicLight>();
 		s.Rebuild();
 	}
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Add Gradient Light Point")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Add Gradient Light Point")]
 	static void addGradient(){
 		
 		Material m = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Materials/StandardLightMaterialGradient.mat", typeof(Material)) as Material;
@@ -24,7 +24,7 @@ public class DynamicLightEditor : Editor {
 	}
 
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Empty", false, 3)]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Empty", false, 3)]
 	static void addEmpty(){
 		
 		GameObject empty = new GameObject("empty");
@@ -38,7 +38,7 @@ public class DynamicLightEditor : Editor {
 		
 	}
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Square")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Square")]
 	static void addSquare(){
 		
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/square.prefab", typeof(GameObject));
@@ -48,7 +48,7 @@ public class DynamicLightEditor : Editor {
 		
 	}
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Circle")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Circle")]
 	static void addCircle(){
 		
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/circle.prefab", typeof(GameObject));
@@ -58,7 +58,7 @@ public class DynamicLightEditor : Editor {
 		
 	}
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Circle (optimized for single light)")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Circle (with Intellider)")]
 	static void addIntelliderCircle(){
 		
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/circleWithintellider.prefab", typeof(GameObject));
@@ -68,7 +68,7 @@ public class DynamicLightEditor : Editor {
 		
 	}
 
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Hexagon")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Hexagon")]
 	static void addHexagon(){
 
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/hexagon.prefab", typeof(GameObject));
@@ -77,7 +77,7 @@ public class DynamicLightEditor : Editor {
 		hex.name = "hexagon";
 
 	}
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Pacman")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Pacman")]
 	static void addPacman(){
 		
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/pacman.prefab", typeof(GameObject));
@@ -86,7 +86,7 @@ public class DynamicLightEditor : Editor {
 		hex.name = "pacman";
 		
 	}
-	[MenuItem ("GameObject/Create Other/2D Dynamic Light/Casters/Star")]
+	[MenuItem ("GameObject/2D Object/2D Dynamic Light/Casters/Star")]
 	static void addStar(){
 		
 		Object prefab = AssetDatabase.LoadAssetAtPath("Assets/2DLightAssets/Prefabs/star.prefab", typeof(GameObject));
@@ -135,7 +135,9 @@ public class DynamicLightEditor : Editor {
 		if(fRange < 1)
 			fRange = 1;
 
-		range.intValue = fRange;
+		if(range.intValue != fRange){
+			range.intValue = fRange;
+		}
 
 		string v = version.stringValue;
 

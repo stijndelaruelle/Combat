@@ -35,6 +35,7 @@ public class DynamicLight : MonoBehaviour {
 	public float lightRadius = 20f;
 	public int lightSegments = 8;
 	public LayerMask Layer; // Mesh for our light mesh
+	//int Layer;
 
 	// -- OPTIMISATIONS BOOLS --//
 	public bool notifyGameObjectsReached = false;
@@ -64,8 +65,19 @@ public class DynamicLight : MonoBehaviour {
 		lightMaterial = m;
 	}
 
-	// Called at beginning of script execution
+	public void setLayerMask(){
+		#if UNITY_EDITOR
+		if(!Application.isPlaying && Layer.value <= 0){
+			Layer = 1<< LayerMask.NameToLayer("ShadowLayer");
+		}
+		#endif
+	}
+	
+
+
 	public void Rebuild () {
+
+
 		//--mesh filter--//
 		MeshFilter meshFilter = GetComponent<MeshFilter>();
 		if (meshFilter==null){
@@ -94,19 +106,22 @@ public class DynamicLight : MonoBehaviour {
 		lightMesh.name = "Light Mesh";															// Give it a name
 		lightMesh.MarkDynamic ();
 
-		//Layer = 1 << 8; //STIJN DISABLED BECAUSE WTF?
 
 
 
 		
 	}
 
-	void Start(){Rebuild();
 
+	void Start(){
+		//-- Set Layer mask --//
+		setLayerMask();
 
+		Rebuild();
 	}
 
 	void Update(){
+
 
 		fixedLimitations();
 
@@ -491,7 +506,7 @@ public class DynamicLight : MonoBehaviour {
 			v.pos *= lightRadius;
 			v.pos += transform.position;
 			
-			RaycastHit2D ray = Physics2D.Raycast(transform.position,v.pos - transform.position,lightRadius);
+			RaycastHit2D ray = Physics2D.Raycast(transform.position,v.pos - transform.position,lightRadius, Layer);
 			
 			if (!ray){
 				
@@ -645,7 +660,7 @@ public class DynamicLight : MonoBehaviour {
 		
 		lightMesh.triangles = triangles;												
 		//lightMesh.RecalculateNormals();
-		renderer.sharedMaterial = lightMaterial;
+		GetComponent<Renderer>().sharedMaterial = lightMaterial;
 	}
 
 	void sortList(List<verts> lista){

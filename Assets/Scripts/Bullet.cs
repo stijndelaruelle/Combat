@@ -40,11 +40,11 @@ public class Bullet : MonoBehaviour
 
     public void SetColor(Color color)
     {
-        renderer.material.color = color;
-
         for (int i = 0; i < transform.childCount; ++i)
         {
-            transform.GetChild(i).GetComponent<SpriteRenderer>().color = color;
+            Material material = transform.GetChild(i).gameObject.renderer.material;
+
+            if (material != null) { material.color = color; }
         }
     }
 

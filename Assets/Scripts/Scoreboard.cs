@@ -6,11 +6,11 @@ using System.Collections.Generic;
 public class Scoreboard : MonoBehaviour
 {
     [SerializeField]
-    Text m_VictoryLabel = null;
+    private Text m_VictoryLabel = null;
 
     [SerializeField]
-    List<Text> m_Textfields;
-    List<int> m_Scores;
+    private List<Text> m_Textfields;
+    private List<int> m_Scores;
 
     private void Start()
     {

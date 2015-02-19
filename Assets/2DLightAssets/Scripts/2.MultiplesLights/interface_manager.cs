@@ -54,6 +54,7 @@ public class interface_manager: MonoBehaviour {
 				nLight.GetComponent<DynamicLight>().lightMaterial = m;
 				nLight.transform.position = p;
 				nLight.GetComponent<DynamicLight>().lightRadius = 40;
+				nLight.GetComponent<DynamicLight>().Layer = cLight.GetComponent<DynamicLight>().Layer;
 				
 				GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
 				quad.transform.parent = nLight.transform;

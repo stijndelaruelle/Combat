@@ -8,7 +8,7 @@ private var timeleft : float; // Left time for current interval
  
 function Start()
 {
-    if( !guiText )
+    if( !GetComponent.<GUIText>() )
     {
         print ("FramesPerSecond needs a GUIText component!");
         enabled = false;
@@ -27,7 +27,7 @@ function Update()
     if( timeleft <= 0.0 )
     {
         // display two fractional digits (f2 format)
-        guiText.text = "fps: " + (accum/frames).ToString("f2");
+        GetComponent.<GUIText>().text = "fps: " + (accum/frames).ToString("f2");
         timeleft = updateInterval;
         accum = 0.0;
         frames = 0;

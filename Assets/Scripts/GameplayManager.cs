@@ -63,6 +63,8 @@ public class GameplayManager : MonoBehaviour
     {
         m_Players = GameObject.FindObjectsOfType<Tank>();
         m_Scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+
+        SetGameMode(m_GameMode);
 	}
 
     private void Update()
@@ -78,10 +80,25 @@ public class GameplayManager : MonoBehaviour
 
             ResetGame();
         }
+
+        //Switch level
+        if (Input.GetButtonDown("SwapLevel"))
+        {
+            if (Application.loadedLevelName == "level1")
+            {
+                Application.LoadLevel("level2");
+            }
+            else
+            {
+                Application.LoadLevel("level1");
+            }
+        }
     }
 
     private void ResetGame()
     {
+        StopAllCoroutines();
+
         //Reset the level
         ResetLevel();
 
