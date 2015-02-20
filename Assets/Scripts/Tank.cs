@@ -93,7 +93,7 @@ public class Tank : MonoBehaviour
 
         if (move > 0.0f || !m_PressToMove)
         {
-            float speedMultiplier = Mathf.Max(Mathf.Abs(xAxis), Mathf.Abs(yAxis));
+            float speedMultiplier = Mathf.Clamp01(Mathf.Abs(xAxis) + Mathf.Abs(yAxis));
             Vector2 velocity = transform.right * (speedMultiplier * m_MoveSpeed) * Time.deltaTime;
             transform.Translate(velocity, Space.World);
         }

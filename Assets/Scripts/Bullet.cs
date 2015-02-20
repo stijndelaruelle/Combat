@@ -65,7 +65,7 @@ public class Bullet : MonoBehaviour
         {
             int layerMask = 1 << 8; //8 = ShadowCaster layer
 
-            RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x - transform.right.x, transform.position.y - transform.right.y), new Vector2(transform.right.x, transform.right.y), 4.0f, layerMask);
+            RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x - transform.right.x, transform.position.y - transform.right.y), new Vector2(transform.right.x, transform.right.y), 6.0f, layerMask);
             
             if (hit.collider != null)
             {
