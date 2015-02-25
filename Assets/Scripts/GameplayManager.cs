@@ -11,9 +11,16 @@ public class GameplayManager : MonoBehaviour
         SingleBulletMode,
     }
 
+    public enum VictoryCondition
+    {
+        Territory,
+        Score,
+    }
+
     [SerializeField]
     private int m_MaxScore;
 
+    [SerializeField]
     private Tank[] m_Players;
     private Scoreboard m_Scoreboard = null;
 
@@ -25,7 +32,19 @@ public class GameplayManager : MonoBehaviour
     }
 
     [SerializeField]
+    private VictoryCondition m_VictoryCondition = VictoryCondition.Territory;
+    public VictoryCondition CurrentVictoryCondition
+    {
+        get { return m_VictoryCondition; }
+    }
+
+    [SerializeField]
     private Text m_GameModeLabel;
+
+    [SerializeField]
+    private SubStage m_StartStage; //The stage where it all begins
+    private SubStage m_CurrentStage;
+    private int m_CurrentStageOwner = -1;
 
     //Singleton
     private static GameplayManager m_Instance;
@@ -61,10 +80,11 @@ public class GameplayManager : MonoBehaviour
 	// Use this for initialization
 	private void Start ()
     {
-        m_Players = GameObject.FindObjectsOfType<Tank>();
         m_Scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
+        m_CurrentStage = m_StartStage;
 
         SetGameMode(m_GameMode);
+        ResetGame();
 	}
 
     private void Update()
@@ -80,19 +100,6 @@ public class GameplayManager : MonoBehaviour
 
             ResetGame();
         }
-
-        //Switch level
-        if (Input.GetButtonDown("SwapLevel"))
-        {
-            if (Application.loadedLevelName == "level1")
-            {
-                Application.LoadLevel("level2");
-            }
-            else
-            {
-                Application.LoadLevel("level1");
-            }
-        }
     }
 
     private void ResetGame()
@@ -100,6 +107,9 @@ public class GameplayManager : MonoBehaviour
         StopAllCoroutines();
 
         //Reset the level
+        m_CurrentStage = m_StartStage;
+        m_CurrentStageOwner = -1;
+
         ResetLevel();
 
         //Reset all the scores
@@ -131,13 +141,18 @@ public class GameplayManager : MonoBehaviour
 
 	private void ResetLevel()
     {
-        //SUPER LAME SERIOUSLY
+        //Set the camera
+        Vector3 newPosition = m_CurrentStage.transform.position;
+        newPosition.z = Camera.main.transform.position.z;
+
+        Camera.main.transform.position = newPosition;
 
         //Respawn all the players
-        foreach (Tank player in m_Players)
+        for (int i = 0; i < m_Players.Length; ++i)
         {
-            player.Respawn();
-            player.InputEnabled = true;
+            m_Players[i].Respawn(m_CurrentStage.GetSpawnTransform(i));
+            m_Players[i].SetColor(m_CurrentStage.GetPlayerColor(i));
+            m_Players[i].InputEnabled = true;
         }
 
         //Remove all the bullets
@@ -149,25 +164,83 @@ public class GameplayManager : MonoBehaviour
         } 
     }
 
-    public void UpdateScore(int playerID, int deltaScore)
+    public void UpdateGame(int playerID, int deltaScore = 0)
     {
-        int newScore = m_Scoreboard.UpdateScore(playerID, deltaScore);
+        bool victory = false;
 
-        //Disable player input for a bit
+        //Disable input for a bit
         foreach (Tank player in m_Players)
         {
             player.InputEnabled = false;
         }
 
-        if (newScore >= m_MaxScore)
+        //Update the game
+        switch (m_VictoryCondition)
         {
-            Debug.Log(playerID + " wins!");
+            case VictoryCondition.Territory:
+            {
+                victory = UpdateStage(playerID);
+            }  
+            break;
+
+            case VictoryCondition.Score:
+            {
+                int newScore = m_Scoreboard.UpdateScore(playerID, deltaScore);
+                if (newScore >= m_MaxScore) { victory = true; }
+            }
+            break;
+
+            default: break;
+        }
+
+        
+        if (victory)
+        {
+            //A player won!
+            Debug.Log((playerID + 1) + " wins!");
             m_Scoreboard.SetWinner("Player " + (playerID + 1));
         }
         else
         {
             StartCoroutine(ResetLevelRoutine());
         }
+    }
+
+    private bool UpdateStage(int winnerID)
+    {
+        //Currently player id's are linked to directions
+        //Player 0 = left, 1 = right, 2 = bottom, 3 = up
+
+        SubStage nextStage = null;
+
+        if (m_CurrentStageOwner != -1 && m_CurrentStageOwner != winnerID)
+        {
+            nextStage = m_CurrentStage.GetNeighbouringStage(m_CurrentStageOwner, false);
+            if (nextStage == null) { Debug.LogError("Something went wrong in connecting stages!"); }
+
+            //If this is the starting stage, the last winner is currently no longer winning
+            if (nextStage == m_StartStage)
+            {
+                m_CurrentStageOwner = -1;
+            }
+        }
+        else
+        {
+            //Get the next stage for the winner
+            nextStage = m_CurrentStage.GetNeighbouringStage(winnerID, true);
+
+            //Update the stage owner 
+            m_CurrentStageOwner = winnerID;
+
+            if (nextStage == null)
+            {
+                //No stage exists? That means we reached the end and won!
+                return true;
+            }
+        }
+
+        m_CurrentStage = nextStage;
+        return false;
     }
 
     private IEnumerator ResetLevelRoutine()

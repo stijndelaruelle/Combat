@@ -27,6 +27,20 @@ public class Bullet : MonoBehaviour
     {
         m_MoveSpeed = m_MaxMoveSpeed;
         m_Bounces = m_MaxBounces;
+
+        int layerMask = 1 << 9; //8 = ShadowCaster layer
+
+        RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y), new Vector2(transform.right.x, transform.right.y), 1.0f, layerMask);
+
+        if (hit.collider != null)
+        {
+            //GetComponent<Collider2D>().enabled = false;
+            //GameObject.Destroy(gameObject);
+            Reflect(hit.normal);
+
+            //Move a bit up so we don't stay stuck in the collision
+            //transform.Translate(transform.right);
+        }
     }
 
     private void Update()
@@ -35,7 +49,7 @@ public class Bullet : MonoBehaviour
         Vector2 velocity = transform.right * m_MoveSpeed * Time.deltaTime;
         transform.Translate(velocity, Space.World);
 
-        Debug.DrawRay(new Vector2(transform.position.x - transform.right.x, transform.position.y - transform.right.y), new Vector2(transform.right.x * 2.0f, transform.right.y * 2.0f));
+        Debug.DrawRay(new Vector2(transform.position.x, transform.position.y), new Vector2(transform.right.x, transform.right.y));
     }
 
     public void SetColor(Color color)
@@ -44,16 +58,19 @@ public class Bullet : MonoBehaviour
         {
             Material material = transform.GetChild(i).gameObject.renderer.material;
 
-            if (material != null) { material.color = color; }
+            if (material != null)
+            {
+                material.color = color;
+            }
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D collider)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         //If it's a player, damage him
-        if (collider.tag == "Player")
+        if (collision.gameObject.tag == "Player")
         {
-            collider.transform.parent.gameObject.GetComponent<Tank>().Damage(m_Damage, m_OwnerID);
+            collision.gameObject.transform.GetComponent<Tank>().Damage(m_Damage, m_OwnerID);
 
             //Destroy ourselves
             GameObject.Destroy(gameObject);
@@ -63,23 +80,21 @@ public class Bullet : MonoBehaviour
         //It's a wall, let's bounce!
         if (m_Bounces > 0 || GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
         {
-            int layerMask = 1 << 8; //8 = ShadowCaster layer
-
-            RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x - transform.right.x, transform.position.y - transform.right.y), new Vector2(transform.right.x, transform.right.y), 6.0f, layerMask);
-            
-            if (hit.collider != null)
-            {
-                transform.right = Vector3.Reflect(transform.right, hit.normal);
-            }
-
-            //Reduce movespeed by a xth
-            m_MoveSpeed -= (m_MoveSpeed / m_MaxBounces);
-            --m_Bounces;
+            Reflect(collision.contacts[0].normal);
 
             return;
         }
 
         //No more bounces, let's just 
         GameObject.Destroy(gameObject);
+    }
+
+    private void Reflect(Vector3 normal)
+    {
+        transform.right = Vector3.Reflect(transform.right, normal);
+
+        //Reduce movespeed by a xth
+        m_MoveSpeed -= (m_MoveSpeed / m_MaxBounces);
+        --m_Bounces;
     }
 }

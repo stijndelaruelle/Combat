@@ -54,18 +54,7 @@ public class Tank : MonoBehaviour
         set { m_IsInputEnabled = value; }
     }
 
-    private Vector3 m_SpawnPosition = new Vector3(0, 0, 0);
-    private Quaternion m_SpawnRotation = Quaternion.identity;
-
     //Functions
-    private void Start()
-    {
-        m_SpawnPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-        m_SpawnRotation = transform.rotation;
-
-        Respawn();   
-	}
-	
     private void Update()
     {
         if (IsDead || !InputEnabled) return;
@@ -130,23 +119,24 @@ public class Tank : MonoBehaviour
             int deltaScore = 1;
             if (m_PlayerID == killerID) deltaScore = -1; //Remove a point if we killed ourselves
 
-            GameplayManager.Instance.UpdateScore(killerID, deltaScore);
+            GameplayManager.Instance.UpdateGame(killerID, deltaScore);
         }
 
         StartCoroutine(DeathRoutine());
     }
 
-    public void Respawn()
+    public void Respawn(Transform newTransform)
     {
         m_Health = m_MaxHealth;
 
         //Reset position
-        transform.position = m_SpawnPosition;
-        transform.rotation = m_SpawnRotation;
+        transform.position = newTransform.position;
+        transform.rotation = newTransform.rotation;
 
         StopAllCoroutines();
-        m_InvisibleTimer = 0.0f;
+        m_InvisibleTimer = 0.0f; //Set to zero so the coroutine gets started
         SetVisible();
+        m_InvisibleTimer = 2.0f; //Set to 2 so we go invisible quicker right after spawn
 
         if (OnRespawn != null) OnRespawn();
     }
@@ -189,6 +179,25 @@ public class Tank : MonoBehaviour
             if (renderer != null)
             {
                 renderer.enabled = value;
+            }
+        }
+    }
+
+    public void SetColor(Color color)
+    {
+        SpriteRenderer spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.enabled = true;
+        spriteRenderer.color = color;
+
+        for (int i = 0; i < gameObject.transform.childCount; ++i)
+        {
+            SpriteRenderer childSpriteRenderer = gameObject.transform.GetChild(i).gameObject.GetComponent<SpriteRenderer>();
+            if (childSpriteRenderer != null)
+            {
+                childSpriteRenderer.enabled = true;
+
+                //Calculate an appropriate color by changing the saturation & brightness
+                childSpriteRenderer.color = color;
             }
         }
     }
