@@ -1,0 +1,30 @@
+
+
+ COMBAT TO DO LIST
+
+ Time ++++
+ ------
+
+ - level minimap
+ - make tanks bounce a bit on wall collision
+ - target hit game mode
+ - attack / defend mode (3 levens vs target)
+ - Change bullets in invisible mode (max 1)
+
+ - hit animation
+ - spawn animation
+
+ - time & life based victory conditions
+
+ Time +
+ -----
+ - Toon spelernaam id header
+ - color the barrels correctly again (H, S, B COLOR)
+
+ 
+ - Cheat bullet
+
+ Bugs
+ ------
+
+  - Make scoreboard change colors as well

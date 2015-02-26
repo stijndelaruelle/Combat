@@ -18,14 +18,32 @@ public class Barrel : MonoBehaviour
 
     private bool m_IsReloading = false;
     private Tank m_Parent = null;
+
     //Functions
     private void Start()
     {
         m_Parent = transform.parent.GetComponent<Tank>();
+
+        //Subscribe to events
         m_Parent.OnHit += OnParentHit;
         m_Parent.OnRespawn += OnParentRespawn;
+        m_Parent.OnEnableRenderer += OnParentEnableRenderer;
+        m_Parent.OnColorChange += OnParentColorChange;
+        m_Parent.OnAlphaChange += OnParentAlphaChange;
 
         m_PlayerID = m_Parent.PlayerID;
+
+        m_LastRotation = m_Parent.gameObject.transform.localRotation;
+    }
+
+    private void Destroy()
+    {
+        //Unsubscribe from events
+        m_Parent.OnHit -= OnParentHit;
+        m_Parent.OnRespawn -= OnParentRespawn;
+        m_Parent.OnEnableRenderer -= OnParentEnableRenderer;
+        m_Parent.OnColorChange -= OnParentColorChange;
+        m_Parent.OnAlphaChange -= OnParentAlphaChange;
     }
 
     private void Update()
@@ -115,5 +133,27 @@ public class Barrel : MonoBehaviour
     private void OnParentRespawn()
     {
         m_IsReloading = false;
+
+        //Reset rotation
+        m_LastRotation = m_Parent.gameObject.transform.localRotation;
+    }
+
+    private void OnParentColorChange(Color color)
+    {
+        SpriteRenderer spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.enabled = true;
+        spriteRenderer.color = color;
+    }
+
+    private void OnParentAlphaChange(float alpha)
+    {
+        SpriteRenderer spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.enabled = true;
+        spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, alpha);
+    }
+
+    private void OnParentEnableRenderer(bool value)
+    {
+        gameObject.GetComponent<SpriteRenderer>().enabled = value;
     }
 }

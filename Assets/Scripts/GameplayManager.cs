@@ -17,12 +17,18 @@ public class GameplayManager : MonoBehaviour
         Score,
     }
 
+    //Events
+    public event VoidDelegate OnResetGame;
+    public event IntReturnIntDelegate OnUpdateScore;
+    public event SubStageBoolDelegate OnUpdateMap;
+    public event StringDelegate OnSetWinner;
+
+    //Datamembers
     [SerializeField]
     private int m_MaxScore;
 
     [SerializeField]
     private Tank[] m_Players;
-    private Scoreboard m_Scoreboard = null;
 
     [SerializeField]
     private GameMode m_GameMode = GameMode.InvisibleMode;
@@ -44,6 +50,8 @@ public class GameplayManager : MonoBehaviour
     [SerializeField]
     private SubStage m_StartStage; //The stage where it all begins
     private SubStage m_CurrentStage;
+    private SubStage m_LastStage;
+
     private int m_CurrentStageOwner = -1;
 
     //Singleton
@@ -80,8 +88,13 @@ public class GameplayManager : MonoBehaviour
 	// Use this for initialization
 	private void Start ()
     {
-        m_Scoreboard = GameObject.Find("Scoreboard").GetComponent<Scoreboard>();
         m_CurrentStage = m_StartStage;
+        m_LastStage = null;
+
+        if (m_VictoryCondition == VictoryCondition.Territory)
+        {
+            if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, true);
+        }
 
         SetGameMode(m_GameMode);
         ResetGame();
@@ -107,13 +120,16 @@ public class GameplayManager : MonoBehaviour
         StopAllCoroutines();
 
         //Reset the level
+        m_CurrentStage.Deactivate();
+        m_StartStage.Activate();
+
         m_CurrentStage = m_StartStage;
+        
         m_CurrentStageOwner = -1;
 
         ResetLevel();
 
-        //Reset all the scores
-        m_Scoreboard.ResetScores();
+        if (OnResetGame != null) OnResetGame();
     }
 
     private void SetGameMode(GameMode gameMode)
@@ -180,25 +196,27 @@ public class GameplayManager : MonoBehaviour
             case VictoryCondition.Territory:
             {
                 victory = UpdateStage(playerID);
+                if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, false);
             }  
             break;
 
             case VictoryCondition.Score:
             {
-                int newScore = m_Scoreboard.UpdateScore(playerID, deltaScore);
-                if (newScore >= m_MaxScore) { victory = true; }
+                if (OnUpdateScore != null)
+                {
+                    int newScore = OnUpdateScore(playerID);
+                    if (newScore >= m_MaxScore) { victory = true; }
+                } 
             }
             break;
 
             default: break;
         }
 
-        
         if (victory)
         {
             //A player won!
-            Debug.Log((playerID + 1) + " wins!");
-            m_Scoreboard.SetWinner("Player " + (playerID + 1));
+            if (OnSetWinner != null) { OnSetWinner(m_Players[playerID].Name); }
         }
         else
         {
@@ -209,7 +227,7 @@ public class GameplayManager : MonoBehaviour
     private bool UpdateStage(int winnerID)
     {
         //Currently player id's are linked to directions
-        //Player 0 = left, 1 = right, 2 = bottom, 3 = up
+        //Player 0 = left, 1 = right, 2 = uo, 3 = bottom
 
         SubStage nextStage = null;
 
@@ -239,13 +257,19 @@ public class GameplayManager : MonoBehaviour
             }
         }
 
+        m_LastStage = m_CurrentStage;
         m_CurrentStage = nextStage;
+
         return false;
     }
 
     private IEnumerator ResetLevelRoutine()
     {
         yield return new WaitForSeconds(m_Players[0].InvisibleSpeed);
+
+        m_LastStage.Deactivate();
+        m_CurrentStage.Activate();
+
         ResetLevel();
     }
 }

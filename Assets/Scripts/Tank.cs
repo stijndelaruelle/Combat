@@ -1,13 +1,24 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+//Delegates
+public delegate void VoidDelegate();
+public delegate void BoolDelegate(bool b);
+public delegate void IntDelegate(int i);
+public delegate int  IntReturnIntDelegate(int i);
+public delegate void FloatDelegate(float f);
+public delegate void StringDelegate(string s);
+public delegate void ColorDelegate(Color color);
+public delegate void SubStageBoolDelegate(SubStage subStage, bool b);
+
 public class Tank : MonoBehaviour
 {
-    public delegate void VoidDelegate();
+    //Events
     public event VoidDelegate OnRespawn;
-
-    public delegate void IntDelegate(int i);
+    public event BoolDelegate OnEnableRenderer;
     public event IntDelegate OnHit;
+    public event FloatDelegate OnAlphaChange;
+    public event ColorDelegate OnColorChange;
 
     //Datamembers
     [SerializeField]
@@ -39,9 +50,6 @@ public class Tank : MonoBehaviour
     [SerializeField]
     private int m_MaxHealth = 1;
     private int m_Health = 1;
-
-    private bool m_PressToMove = false;
-
     public bool IsDead
     {
         get { return (m_Health <= 0); }
@@ -54,16 +62,28 @@ public class Tank : MonoBehaviour
         set { m_IsInputEnabled = value; }
     }
 
+    //Player name (for fun)
+    private string m_PlayerName;
+    public string Name
+    {
+        get { return m_PlayerName; }
+    }
+
     //Functions
+    private void Start()
+    {
+        m_PlayerName = "Player " + (m_PlayerID + 1);
+    }
+
     private void Update()
     {
-        if (IsDead || !InputEnabled) return;
+        //Set names (for fun)
+        if (Input.GetButtonDown("SetName1_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Stijn"; }
+        if (Input.GetButtonDown("SetName2_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Daniel"; }
+        if (Input.GetButtonDown("SetName3_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Freek"; }
+        if (Input.GetButtonDown("SetName4_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Marijke"; }
 
-        //Set your move option
-        if (Input.GetButtonDown("MoveOption_Joystick" + (m_PlayerID + 1)))
-        {
-            m_PressToMove = !m_PressToMove;
-        }
+        if (IsDead || !InputEnabled) return;
 
         //Rotating
         float xAxis = Input.GetAxis("RotateHorizontal_Joystick" + (m_PlayerID + 1));
@@ -78,14 +98,9 @@ public class Tank : MonoBehaviour
         transform.rotation = Quaternion.Euler(new Vector3(0, 0, tweenAngle));
 
         //Moving
-        float move = Input.GetAxis("Move_Joystick" + (m_PlayerID + 1));
-
-        if (move > 0.0f || !m_PressToMove)
-        {
-            float speedMultiplier = Mathf.Clamp01(Mathf.Abs(xAxis) + Mathf.Abs(yAxis));
-            Vector2 velocity = transform.right * (speedMultiplier * m_MoveSpeed) * Time.deltaTime;
-            transform.Translate(velocity, Space.World);
-        }
+        float speedMultiplier = Mathf.Clamp01(Mathf.Abs(xAxis) + Mathf.Abs(yAxis));
+        Vector2 velocity = transform.right * (speedMultiplier * m_MoveSpeed) * Time.deltaTime;
+        transform.Translate(velocity, Space.World);
 	}
 
     #region Damage & Death
@@ -172,15 +187,7 @@ public class Tank : MonoBehaviour
     public void EnableRenderer(bool value)
     {
         gameObject.GetComponent<SpriteRenderer>().enabled = value;
-
-        for (int i = 0; i < gameObject.transform.childCount; ++i)
-        {
-            Renderer renderer = gameObject.transform.GetChild(i).gameObject.renderer;
-            if (renderer != null)
-            {
-                renderer.enabled = value;
-            }
-        }
+        if (OnEnableRenderer != null) OnEnableRenderer(value);
     }
 
     public void SetColor(Color color)
@@ -189,17 +196,7 @@ public class Tank : MonoBehaviour
         spriteRenderer.enabled = true;
         spriteRenderer.color = color;
 
-        for (int i = 0; i < gameObject.transform.childCount; ++i)
-        {
-            SpriteRenderer childSpriteRenderer = gameObject.transform.GetChild(i).gameObject.GetComponent<SpriteRenderer>();
-            if (childSpriteRenderer != null)
-            {
-                childSpriteRenderer.enabled = true;
-
-                //Calculate an appropriate color by changing the saturation & brightness
-                childSpriteRenderer.color = color;
-            }
-        }
+        if (OnColorChange != null) OnColorChange(color);
     }
 
     public void SetAlpha(float alpha)
@@ -208,15 +205,7 @@ public class Tank : MonoBehaviour
         spriteRenderer.enabled = true;
         spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b, alpha);
 
-        for (int i = 0; i < gameObject.transform.childCount; ++i)
-        {
-            SpriteRenderer childSpriteRenderer = gameObject.transform.GetChild(i).gameObject.GetComponent<SpriteRenderer>();
-            if (childSpriteRenderer != null)
-            {
-                childSpriteRenderer.enabled = true;
-                childSpriteRenderer.color = new Color(childSpriteRenderer.color.r, childSpriteRenderer.color.g, childSpriteRenderer.color.b, alpha);
-            }
-        }
+        if (OnAlphaChange != null) OnAlphaChange(alpha);
     }
 
     private IEnumerator VisibilityRoutine()

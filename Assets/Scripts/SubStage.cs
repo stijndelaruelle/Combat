@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 public class SubStage : MonoBehaviour
 {
+    //-------------
+    // Datamembers
+    //-------------
+
+    [SerializeField]
+    private List<GameObject> m_DynamicObjects;
+
     [SerializeField]
     private List<Transform> m_SpawnTransforms;
 
@@ -36,6 +43,33 @@ public class SubStage : MonoBehaviour
     public SubStage BottomStage
     {
         get { return m_BottomStage; }
+    }
+
+    //-------------
+    // Functions
+    //-------------
+    private void Start()
+    {
+        Deactivate();
+    }
+
+    public void Activate()
+    {
+        //Enable & reset all our dynamic objects
+        foreach (GameObject obj in m_DynamicObjects)
+        {
+            obj.transform.localRotation = Quaternion.identity;
+            obj.SetActive(true);
+        }
+    }
+
+    public void Deactivate()
+    {
+        //Disable all our dynamic objects
+        foreach (GameObject obj in m_DynamicObjects)
+        {
+            obj.SetActive(false);
+        }
     }
 
 	public Transform GetSpawnTransform(int id)
