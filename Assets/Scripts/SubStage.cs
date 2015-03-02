@@ -9,13 +9,17 @@ public class SubStage : MonoBehaviour
     //-------------
 
     [SerializeField]
+    private Color m_HomeColor;
+    public Color HomeColor
+    {
+        get { return m_HomeColor; }
+    }
+
+    [SerializeField]
     private List<GameObject> m_DynamicObjects;
 
     [SerializeField]
     private List<Transform> m_SpawnTransforms;
-
-    [SerializeField]
-    private List<Color> m_PlayerColors;
 
     [SerializeField]
     private SubStage m_LeftStage = null;
@@ -80,16 +84,6 @@ public class SubStage : MonoBehaviour
         }
 
         return null;
-    }
-
-    public Color GetPlayerColor(int id)
-    {
-        if (id < m_SpawnTransforms.Count)
-        {
-            return m_PlayerColors[id];
-        }
-
-        return Color.white;
     }
 
     public SubStage GetNeighbouringStage(int dir, bool opposite)

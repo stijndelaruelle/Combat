@@ -84,11 +84,29 @@ public class Barrel : MonoBehaviour
 
         float shootAxis = Input.GetAxis("Shoot_Joystick" + (m_PlayerID + 1));
 
+#if UNITY_EDITOR
+        if (shootAxis == 0.0f && m_PlayerID == 1)
+        {
+            bool db = Input.GetButtonDown("ShootDebug");
+            if (db) shootAxis = 11.0f;
+        }
+#endif
+
         if (shootAxis != 0.0f && m_IsReloading == false)
         {
             //Calculate spawn position
             Vector3 offset = transform.right * 90.0f * Time.deltaTime;
             Vector2 spawnPos = transform.position + offset;
+
+            //Do a raycast check
+            int layerMask = 1 << 9; //walls
+            RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y), new Vector2(transform.right.x, transform.right.y), 1.0f, layerMask);
+
+            if (hit.collider != null)
+            {
+                //Don't shoot
+                return;
+            }
 
             //Shoot
             GameObject obj = GameObject.Instantiate(m_BulletPrefab, spawnPos, transform.rotation) as GameObject;

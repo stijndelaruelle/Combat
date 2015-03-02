@@ -27,20 +27,6 @@ public class Bullet : MonoBehaviour
     {
         m_MoveSpeed = m_MaxMoveSpeed;
         m_Bounces = m_MaxBounces;
-
-        int layerMask = 1 << 9; //8 = ShadowCaster layer
-
-        RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y), new Vector2(transform.right.x, transform.right.y), 1.0f, layerMask);
-
-        if (hit.collider != null)
-        {
-            //GetComponent<Collider2D>().enabled = false;
-            //GameObject.Destroy(gameObject);
-            Reflect(hit.normal);
-
-            //Move a bit up so we don't stay stuck in the collision
-            //transform.Translate(transform.right);
-        }
     }
 
     private void Update()

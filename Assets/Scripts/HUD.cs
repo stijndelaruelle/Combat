@@ -11,8 +11,8 @@ public class HUD : MonoBehaviour
     //Stage based modes
     [SerializeField]
     private GameObject m_SubStageIconPrefab;
-
-    private Dictionary<SubStage, Image> m_Map;
+    private Dictionary<SubStage, SubStageIcon> m_Map;
+    private SubStage m_LastActiveSage;
 
     //Score based modes
     [SerializeField]
@@ -25,6 +25,7 @@ public class HUD : MonoBehaviour
 
         gameplayManager.OnResetGame += OnResetGame;
         gameplayManager.OnUpdateScore += OnUpdateScore;
+        gameplayManager.OnGenerateMap += OnGenerateMap;
         gameplayManager.OnUpdateMap += OnUpdateMap;
         gameplayManager.OnSetWinner += OnSetWinner;
 
@@ -37,10 +38,17 @@ public class HUD : MonoBehaviour
     private void GenerateMap(SubStage startStage)
     {
         //Clear our current map
-        if (m_Map == null) { m_Map = new Dictionary<SubStage, Image>(); }
+        if (m_Map == null) { m_Map = new Dictionary<SubStage, SubStageIcon>(); }
+
+        foreach(KeyValuePair<SubStage, SubStageIcon> keyValue in m_Map)
+        {
+            Destroy(keyValue.Value.gameObject);
+        }
         m_Map.Clear();
 
         AddSubStageIcon(startStage, Vector2.zero);
+
+        m_Map[startStage].SetContested(true);
     }
 
     private void AddSubStageIcon(SubStage subStage, Vector2 pos)
@@ -58,7 +66,10 @@ public class HUD : MonoBehaviour
         newObject.transform.localPosition = pos;
         newObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
-        m_Map.Add(subStage, newObject.GetComponent<Image>());
+        SubStageIcon subStageIcon = newObject.GetComponent<SubStageIcon>();
+        subStageIcon.SetContested(false, subStage.HomeColor);
+
+        m_Map.Add(subStage, subStageIcon);
 
         //Go over all the neightbours
         for (int dir = 0; dir < 4; ++dir)
@@ -72,10 +83,10 @@ public class HUD : MonoBehaviour
 
                 switch (dir)
                 {
-                    case 0: offset.x = -150.0f; break;
-                    case 1: offset.x = 150.0f;  break;
-                    case 2: offset.y = 87.0f;  break;
-                    case 3: offset.y = -87.0f;   break;
+                    case 0: offset.x = -155.0f; break;
+                    case 1: offset.x = 155.0f;  break;
+                    case 2: offset.y = 92.0f;  break;
+                    case 3: offset.y = -92.0f;   break;
 
                     default:
                         break;
@@ -87,15 +98,31 @@ public class HUD : MonoBehaviour
         }
     }
 
-    public void OnUpdateMap(SubStage stage, bool generate)
+    public void OnGenerateMap(SubStage stage)
     {
-        if (generate)
+        m_LastActiveSage = stage;
+        GenerateMap(stage);
+        return;
+    }
+
+    public void OnUpdateMap(SubStage stage, Color color)
+    {
+        color.a = 1.0f;
+
+        if (m_LastActiveSage != null) m_Map[m_LastActiveSage].SetContested(false, color);
+        m_Map[stage].SetContested(true);
+
+        m_LastActiveSage = stage;
+    }
+
+    public void ResetMap()
+    {
+        m_LastActiveSage = null;
+
+        foreach (KeyValuePair<SubStage, SubStageIcon> data in m_Map)
         {
-            GenerateMap(stage);
-            return;
+            data.Value.SetContested(false, data.Key.HomeColor);
         }
-
-
     }
 
     //Score
@@ -118,6 +145,8 @@ public class HUD : MonoBehaviour
         }
 
         m_VictoryLabel.gameObject.SetActive(false);
+
+        ResetMap();
     }
 
     public void OnSetWinner(string name)

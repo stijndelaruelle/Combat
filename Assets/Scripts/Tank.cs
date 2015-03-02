@@ -9,7 +9,8 @@ public delegate int  IntReturnIntDelegate(int i);
 public delegate void FloatDelegate(float f);
 public delegate void StringDelegate(string s);
 public delegate void ColorDelegate(Color color);
-public delegate void SubStageBoolDelegate(SubStage subStage, bool b);
+public delegate void SubStageDelegate(SubStage subStage);
+public delegate void SubStageColorDelegate(SubStage subStage, Color col);
 
 public class Tank : MonoBehaviour
 {
@@ -45,6 +46,11 @@ public class Tank : MonoBehaviour
     public float InvisibleSpeed
     {
         get { return m_InvinsibleSpeed; }
+    }
+
+    public Color CurrentColor
+    {
+        get { return gameObject.GetComponent<SpriteRenderer>().color; }
     }
 
     [SerializeField]

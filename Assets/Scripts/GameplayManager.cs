@@ -11,21 +11,20 @@ public class GameplayManager : MonoBehaviour
         SingleBulletMode,
     }
 
-    public enum VictoryCondition
-    {
-        Territory,
-        Score,
-    }
-
     //Events
     public event VoidDelegate OnResetGame;
     public event IntReturnIntDelegate OnUpdateScore;
-    public event SubStageBoolDelegate OnUpdateMap;
+
+    public event SubStageDelegate OnGenerateMap;
+    public event SubStageColorDelegate OnUpdateMap;
     public event StringDelegate OnSetWinner;
 
     //Datamembers
-    [SerializeField]
-    private int m_MaxScore;
+    private int m_CurrentPlayerCount = 2;
+    public int CurrentPlayersCount
+    {
+        get { return m_CurrentPlayerCount; }
+    }
 
     [SerializeField]
     private Tank[] m_Players;
@@ -38,21 +37,20 @@ public class GameplayManager : MonoBehaviour
     }
 
     [SerializeField]
-    private VictoryCondition m_VictoryCondition = VictoryCondition.Territory;
-    public VictoryCondition CurrentVictoryCondition
-    {
-        get { return m_VictoryCondition; }
-    }
+    private SubStage m_2PlayerStage;
 
     [SerializeField]
-    private Text m_GameModeLabel;
+    private SubStage m_4PlayerStage;
 
-    [SerializeField]
     private SubStage m_StartStage; //The stage where it all begins
     private SubStage m_CurrentStage;
-    private SubStage m_LastStage;
+    private SubStage m_LastStage = null;
 
     private int m_CurrentStageOwner = -1;
+    public bool IsInitialized
+    {
+        get { return (m_StartStage != null); }
+    }
 
     //Singleton
     private static GameplayManager m_Instance;
@@ -69,7 +67,7 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
-    void Awake()
+    private void Awake()
     {
         if (m_Instance == null)
         {
@@ -85,90 +83,70 @@ public class GameplayManager : MonoBehaviour
         }
     }
 
-	// Use this for initialization
-	private void Start ()
+    private void Start()
     {
+        //Disable all player input
+        foreach (Tank player in m_Players)
+        {
+            player.InputEnabled = false;
+        }
+
+        //Set the first 2 player map as active
+        if (m_2PlayerStage != null) m_2PlayerStage.Activate();
+    }
+
+    public void StartGame()
+    {
+        //Select the right stage & reset the game
+        if (m_CurrentPlayerCount == 2) { m_StartStage = m_2PlayerStage; }
+        else                           { m_StartStage = m_4PlayerStage; }
+
         m_CurrentStage = m_StartStage;
-        m_LastStage = null;
+        if (OnGenerateMap != null) OnGenerateMap(m_CurrentStage);
 
-        if (m_VictoryCondition == VictoryCondition.Territory)
-        {
-            if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, true);
-        }
-
-        SetGameMode(m_GameMode);
         ResetGame();
-	}
-
-    private void Update()
-    {
-        //Reset the game
-        if (Input.GetButtonDown("Start")) { ResetGame(); }
-
-        //Loop gamemode
-        if (Input.GetButtonDown("Select"))
-        {
-            if (m_GameMode == GameMode.InvisibleMode) SetGameMode(GameMode.SingleBulletMode);
-            else                                      SetGameMode(GameMode.InvisibleMode);
-
-            ResetGame();
-        }
     }
 
     private void ResetGame()
     {
         StopAllCoroutines();
 
+        if (OnResetGame != null) OnResetGame();
+
         //Reset the level
         m_CurrentStage.Deactivate();
         m_StartStage.Activate();
 
         m_CurrentStage = m_StartStage;
-        
+        if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, m_CurrentStage.HomeColor);
+
         m_CurrentStageOwner = -1;
 
-        ResetLevel();
-
-        if (OnResetGame != null) OnResetGame();
+        PrepareNextStage(true);
     }
 
-    private void SetGameMode(GameMode gameMode)
-    {
-        m_GameMode = gameMode;
-
-        switch (m_GameMode)
-        {
-            case GameMode.InvisibleMode:
-            {
-                m_GameModeLabel.text = "Invisible Mode";
-                break;
-            }
-
-            case GameMode.SingleBulletMode:
-            {
-                m_GameModeLabel.text = "Single Bullet Mode";
-                break;
-            }
-
-            default:
-                break;
-        }
-    }
-
-	private void ResetLevel()
+    private void PrepareNextStage(bool instant = false)
     {
         //Set the camera
         Vector3 newPosition = m_CurrentStage.transform.position;
         newPosition.z = Camera.main.transform.position.z;
 
-        Camera.main.transform.position = newPosition;
+        float time = 0.5f;
+        if (instant) time = 0.0f;
+        Camera.main.GetComponent<CameraPanner>().PanCamera(newPosition, time);
 
-        //Respawn all the players
-        for (int i = 0; i < m_Players.Length; ++i)
+        //Respawn all the active
+        for (int i = 0; i < m_CurrentPlayerCount; ++i)
         {
+            m_Players[i].gameObject.SetActive(true);
             m_Players[i].Respawn(m_CurrentStage.GetSpawnTransform(i));
-            m_Players[i].SetColor(m_CurrentStage.GetPlayerColor(i));
             m_Players[i].InputEnabled = true;
+        }
+
+        //Decativate the rest
+        for (int i = m_CurrentPlayerCount; i < m_Players.Length; ++i)
+        {
+            m_Players[i].gameObject.SetActive(false);
         }
 
         //Remove all the bullets
@@ -182,8 +160,6 @@ public class GameplayManager : MonoBehaviour
 
     public void UpdateGame(int playerID, int deltaScore = 0)
     {
-        bool victory = false;
-
         //Disable input for a bit
         foreach (Tank player in m_Players)
         {
@@ -191,43 +167,21 @@ public class GameplayManager : MonoBehaviour
         }
 
         //Update the game
-        switch (m_VictoryCondition)
-        {
-            case VictoryCondition.Territory:
-            {
-                victory = UpdateStage(playerID);
-                if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, false);
-            }  
-            break;
-
-            case VictoryCondition.Score:
-            {
-                if (OnUpdateScore != null)
-                {
-                    int newScore = OnUpdateScore(playerID);
-                    if (newScore >= m_MaxScore) { victory = true; }
-                } 
-            }
-            break;
-
-            default: break;
-        }
-
-        if (victory)
+        if (GotoNextStage(playerID))
         {
             //A player won!
             if (OnSetWinner != null) { OnSetWinner(m_Players[playerID].Name); }
         }
         else
         {
-            StartCoroutine(ResetLevelRoutine());
+            StartCoroutine(PrepareStageRoutine(playerID));
         }
     }
 
-    private bool UpdateStage(int winnerID)
+    private bool GotoNextStage(int winnerID)
     {
         //Currently player id's are linked to directions
-        //Player 0 = left, 1 = right, 2 = uo, 3 = bottom
+        //Player 0 = left, 1 = right, 2 = up, 3 = bottom
 
         SubStage nextStage = null;
 
@@ -263,13 +217,40 @@ public class GameplayManager : MonoBehaviour
         return false;
     }
 
-    private IEnumerator ResetLevelRoutine()
+    private IEnumerator PrepareStageRoutine(int winnerID)
     {
         yield return new WaitForSeconds(m_Players[0].InvisibleSpeed);
 
         m_LastStage.Deactivate();
         m_CurrentStage.Activate();
+        if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, m_Players[winnerID].CurrentColor);
 
-        ResetLevel();
+        PrepareNextStage();
+    }
+
+
+    //Called from main menu
+    public void IncreasePlayerCount()
+    {
+        ++m_CurrentPlayerCount;
+
+        //Never go over 2 players
+        if (m_CurrentPlayerCount > m_Players.Length)
+        {
+            m_CurrentPlayerCount = 2;
+        }
+    }
+
+    public void IncreaseGameMode()
+    {
+        if (m_GameMode == GameplayManager.GameMode.SingleBulletMode)
+        {
+            m_GameMode = GameplayManager.GameMode.InvisibleMode;
+        }
+
+        else if (m_GameMode == GameplayManager.GameMode.InvisibleMode)
+        {
+            m_GameMode = GameplayManager.GameMode.SingleBulletMode;
+        }
     }
 }

@@ -1,30 +1,31 @@
 
 
- COMBAT TO DO LIST
+COMBAT TO DO LIST
 
- Time ++++
- ------
+MUST
+------
 
- - level minimap
- - make tanks bounce a bit on wall collision
- - target hit game mode
- - attack / defend mode (3 levens vs target)
- - Change bullets in invisible mode (max 1)
+	- 3/4p don't win after & kill!!!!
+	- Change bullets in invisible mode (max 1)
+	- Fuinish maps
 
- - hit animation
- - spawn animation
+	- make tanks bounce a bit on wall collision
+	- Add round scores
 
- - time & life based victory conditions
+	- Don't show minimap on 3/4players
 
- Time +
- -----
- - Toon spelernaam id header
- - color the barrels correctly again (H, S, B COLOR)
 
- 
- - Cheat bullet
+Idea box
+----------
 
- Bugs
- ------
+	- Breakable objects (glas, muren)
+	- attack / defend mode (3 levens vs target)
+	- target hit game mode
+	- time & life based victory conditions
+	- ctr scherm post process (pro)
 
-  - Make scoreboard change colors as well
+	- hit animation
+	- spawn animation
+	- bullet pooling
+
+	- level minimap level swap effect (blink to the winner color)
