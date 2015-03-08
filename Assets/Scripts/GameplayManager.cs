@@ -12,12 +12,12 @@ public class GameplayManager : MonoBehaviour
     }
 
     //Events
+    public event IntDelegate OnStartGame;
     public event VoidDelegate OnResetGame;
-    public event IntReturnIntDelegate OnUpdateScore;
+    public event IntDelegate OnUpdateScore;
 
-    public event SubStageDelegate OnGenerateMap;
+    public event SubStageBoolDelegate OnGenerateMap;
     public event SubStageColorDelegate OnUpdateMap;
-    public event StringDelegate OnSetWinner;
 
     //Datamembers
     private int m_CurrentPlayerCount = 2;
@@ -81,6 +81,10 @@ public class GameplayManager : MonoBehaviour
             if (this != m_Instance)
                 Destroy(this.gameObject);
         }
+
+        //Hide the mouse
+        Screen.showCursor = false;
+        Screen.lockCursor = true;
     }
 
     private void Start()
@@ -102,12 +106,15 @@ public class GameplayManager : MonoBehaviour
         else                           { m_StartStage = m_4PlayerStage; }
 
         m_CurrentStage = m_StartStage;
-        if (OnGenerateMap != null) OnGenerateMap(m_CurrentStage);
+        if (OnGenerateMap != null) OnGenerateMap(m_CurrentStage, (m_CurrentPlayerCount == 2));
 
+        //We only restart if we have the same amount of players
+        if (OnStartGame != null) OnStartGame(m_CurrentPlayerCount);
+        
         ResetGame();
     }
 
-    private void ResetGame()
+    public void ResetGame()
     {
         StopAllCoroutines();
 
@@ -123,6 +130,9 @@ public class GameplayManager : MonoBehaviour
         m_CurrentStageOwner = -1;
 
         PrepareNextStage(true);
+
+        //Hide the win menu
+        MenuManager.Instance.OpenWinMenu(false);
     }
 
     private void PrepareNextStage(bool instant = false)
@@ -160,6 +170,18 @@ public class GameplayManager : MonoBehaviour
 
     public void UpdateGame(int playerID, int deltaScore = 0)
     {
+        //Check if a level was actually won
+        int playersAlive = 0;
+        for (int i = 0; i < m_CurrentPlayerCount; ++i)
+        {
+            if (!m_Players[i].IsDead) ++playersAlive;
+        }
+
+        if (playersAlive > 1)
+        {
+            return;
+        }
+
         //Disable input for a bit
         foreach (Tank player in m_Players)
         {
@@ -170,7 +192,9 @@ public class GameplayManager : MonoBehaviour
         if (GotoNextStage(playerID))
         {
             //A player won!
-            if (OnSetWinner != null) { OnSetWinner(m_Players[playerID].Name); }
+            if (OnUpdateScore != null) { OnUpdateScore(playerID); }
+
+            MenuManager.Instance.OpenWinMenu(true, m_Players[playerID].Name);
         }
         else
         {

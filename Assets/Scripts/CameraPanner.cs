@@ -5,13 +5,14 @@ public class CameraPanner : MonoBehaviour
 {
     public void PanCamera(Vector3 newPos, float speed = 0.0f)
     {
+        StopAllCoroutines();
+
         if (speed == 0.0f)
         {
             transform.position = newPos;
             return;
         }
 
-        StopAllCoroutines();
         StartCoroutine(PanCameraRoutine(newPos, speed));
     }
 

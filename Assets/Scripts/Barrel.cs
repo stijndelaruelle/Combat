@@ -25,7 +25,6 @@ public class Barrel : MonoBehaviour
         m_Parent = transform.parent.GetComponent<Tank>();
 
         //Subscribe to events
-        m_Parent.OnHit += OnParentHit;
         m_Parent.OnRespawn += OnParentRespawn;
         m_Parent.OnEnableRenderer += OnParentEnableRenderer;
         m_Parent.OnColorChange += OnParentColorChange;
@@ -39,7 +38,6 @@ public class Barrel : MonoBehaviour
     private void Destroy()
     {
         //Unsubscribe from events
-        m_Parent.OnHit -= OnParentHit;
         m_Parent.OnRespawn -= OnParentRespawn;
         m_Parent.OnEnableRenderer -= OnParentEnableRenderer;
         m_Parent.OnColorChange -= OnParentColorChange;
@@ -117,6 +115,7 @@ public class Barrel : MonoBehaviour
             bullet.SetColor(color);
 
             bullet.OwnerID = m_Parent.PlayerID;
+            bullet.OwnerBarrel = this;
 
             //Make parent visible
             m_Parent.SetVisible();
@@ -126,26 +125,17 @@ public class Barrel : MonoBehaviour
 
             if (GameplayManager.Instance.CurrentGameMode != GameplayManager.GameMode.SingleBulletMode)
             {
-                StartCoroutine(ReloadRoutine());
+                StartCoroutine(ReloadRoutine(m_ReloadSpeed));
             }
         }
     }
 
-    private IEnumerator ReloadRoutine()
+    private IEnumerator ReloadRoutine(float speed)
     {
-        yield return new WaitForSeconds(m_ReloadSpeed);
+        yield return new WaitForSeconds(speed);
         m_IsReloading = false;
 
         yield return null;
-    }
-
-    private void OnParentHit(int otherID)
-    {
-        if (GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode &&
-            m_PlayerID == otherID)
-        {
-            m_IsReloading = false;
-        }
     }
 
     private void OnParentRespawn()
@@ -173,5 +163,21 @@ public class Barrel : MonoBehaviour
     private void OnParentEnableRenderer(bool value)
     {
         gameObject.GetComponent<SpriteRenderer>().enabled = value;
+    }
+
+    public void OnBulletHit(int otherID)
+    {
+        //When a bullet we fired hit someone this is called
+        if (GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
+        {
+            if (m_PlayerID != otherID)
+            {
+                StartCoroutine(ReloadRoutine(m_ReloadSpeed / 4.0f));
+            }
+            else
+            {
+                m_IsReloading = false;
+            }
+        }
     }
 }

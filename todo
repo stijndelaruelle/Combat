@@ -5,15 +5,8 @@ COMBAT TO DO LIST
 MUST
 ------
 
-	- 3/4p don't win after & kill!!!!
 	- Change bullets in invisible mode (max 1)
-	- Fuinish maps
-
-	- make tanks bounce a bit on wall collision
-	- Add round scores
-
-	- Don't show minimap on 3/4players
-
+	- Finish maps
 
 Idea box
 ----------
@@ -29,3 +22,5 @@ Idea box
 	- bullet pooling
 
 	- level minimap level swap effect (blink to the winner color)
+
+	- make tanks bounce a bit on wall collision

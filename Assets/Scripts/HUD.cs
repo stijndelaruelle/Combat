@@ -5,9 +5,6 @@ using System.Collections.Generic;
 
 public class HUD : MonoBehaviour
 {
-    [SerializeField]
-    private Text m_VictoryLabel = null;
-
     //Stage based modes
     [SerializeField]
     private GameObject m_SubStageIconPrefab;
@@ -23,11 +20,11 @@ public class HUD : MonoBehaviour
     {
         GameplayManager gameplayManager = GameplayManager.Instance;
 
+        gameplayManager.OnStartGame += OnStartGame;
         gameplayManager.OnResetGame += OnResetGame;
         gameplayManager.OnUpdateScore += OnUpdateScore;
         gameplayManager.OnGenerateMap += OnGenerateMap;
         gameplayManager.OnUpdateMap += OnUpdateMap;
-        gameplayManager.OnSetWinner += OnSetWinner;
 
         //Init scores
         m_Scores = new List<int>();
@@ -35,7 +32,7 @@ public class HUD : MonoBehaviour
     }
 
     //Map
-    private void GenerateMap(SubStage startStage)
+    private void GenerateMap(SubStage startStage, bool show)
     {
         //Clear our current map
         if (m_Map == null) { m_Map = new Dictionary<SubStage, SubStageIcon>(); }
@@ -49,6 +46,8 @@ public class HUD : MonoBehaviour
         AddSubStageIcon(startStage, Vector2.zero);
 
         m_Map[startStage].SetContested(true);
+
+        ShowMap(show);
     }
 
     private void AddSubStageIcon(SubStage subStage, Vector2 pos)
@@ -98,10 +97,10 @@ public class HUD : MonoBehaviour
         }
     }
 
-    public void OnGenerateMap(SubStage stage)
+    public void OnGenerateMap(SubStage stage, bool show)
     {
         m_LastActiveSage = stage;
-        GenerateMap(stage);
+        GenerateMap(stage, show);
         return;
     }
 
@@ -125,35 +124,41 @@ public class HUD : MonoBehaviour
         }
     }
 
-    //Score
-    public int OnUpdateScore(int playerID)
+    private void ShowMap(bool value)
     {
-        if (playerID >= m_Scores.Count) return 0;
-        m_Scores[playerID] += 1;
-
-        m_Textfields[playerID].text = m_Scores[playerID].ToString();
-
-        return m_Scores[playerID];
+        foreach (KeyValuePair<SubStage, SubStageIcon> kv in m_Map)
+        {
+            kv.Value.gameObject.SetActive(value);
+        }
     }
 
-    public void OnResetGame()
+    //Winner & score
+    public void OnStartGame(int playerCount)
     {
+        //Reset the scores
         for (int i = 0; i < m_Textfields.Count; ++i)
         {
             m_Scores[i] = 0;
             m_Textfields[i].text = "" + 0; //lame
+
+            //Enable of disable some score labels
+            bool active = false;
+            if (i < playerCount) { active = true; }
+            m_Textfields[i].gameObject.SetActive(active);
         }
+    }
 
-        m_VictoryLabel.gameObject.SetActive(false);
-
+    public void OnResetGame()
+    {
         ResetMap();
     }
 
-    public void OnSetWinner(string name)
+    public void OnUpdateScore(int playerID)
     {
-        m_VictoryLabel.text = name + " wins!";
-        m_VictoryLabel.gameObject.SetActive(true);
+        if (playerID >= m_Scores.Count) return;
 
-        Debug.Log(name);
+        m_Scores[playerID] += 1;
+
+        m_Textfields[playerID].text = m_Scores[playerID].ToString();
     }
 }

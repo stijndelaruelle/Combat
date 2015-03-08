@@ -22,6 +22,15 @@ public class Bullet : MonoBehaviour
         set { m_OwnerID = value; }
     }
 
+    private Barrel m_OwnerBarrel = null; //The barrel that show me, for on hit callback
+    public Barrel OwnerBarrel
+    {
+        get { return m_OwnerBarrel; }
+        set { m_OwnerBarrel = value; }
+    }
+
+    private Collider2D m_LastCollider = null;
+
     //Functions
     private void Start()
     {
@@ -53,10 +62,17 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        //Avoid weird clipping in wall issues
+        if (collision.collider == m_LastCollider) { return; }
+        m_LastCollider = collision.collider;
+
         //If it's a player, damage him
         if (collision.gameObject.tag == "Player")
         {
-            collision.gameObject.transform.GetComponent<Tank>().Damage(m_Damage, m_OwnerID);
+            Tank tank = collision.gameObject.transform.GetComponent<Tank>();
+
+            m_OwnerBarrel.OnBulletHit(tank.PlayerID);
+            tank.Damage(m_Damage, m_OwnerID);
 
             //Destroy ourselves
             GameObject.Destroy(gameObject);

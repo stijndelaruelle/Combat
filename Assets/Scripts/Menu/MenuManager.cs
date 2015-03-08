@@ -3,79 +3,105 @@ using System.Collections;
 
 public class MenuManager : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject m_MainMenu;
+
+    [SerializeField]
+    private GameObject m_WinMenu;
+
+    private bool m_IsWinMenuOpen = false;
+
+    //Singleton
+    private static MenuManager m_Instance;
+    public static MenuManager Instance
+    {
+        get
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = GameObject.FindObjectOfType<MenuManager>();
+            }
+
+            return m_Instance;
+        }
+    }
+
     private void Awake()
     {
-        OpenMenu(true);
-    }
-
-    private void Update()
-    {
-        if (Input.GetButtonDown("MenuOpen"))
+        if (m_Instance == null)
         {
-            OpenMenu(true);
-        }
-
-        if (Input.GetButtonDown("MenuCancel"))
-        {
-            //If the game already had an initial setup
-            if (GameplayManager.Instance.IsInitialized)
-            {
-                OpenMenu(false);
-            }
-        }
-    }
-
-    private void OpenMenu(bool value)
-    {
-        if (value == true)
-        {
-            EnableChildren(true);
-            Time.timeScale = 0.0f;
+            //If I am the first instance, make me the Singleton
+            m_Instance = this;
         }
         else
         {
-            EnableChildren(false);
-            Time.timeScale = 1.0f;
+            //If a Singleton already exists and you find
+            //another reference in scene, destroy it!
+            if (this != m_Instance)
+                Destroy(this.gameObject);
         }
     }
 
-    private void EnableChildren(bool value)
+	// Use this for initialization
+    private void Start()
     {
-        for (int i = 0; i < transform.childCount; ++i)
+        m_MainMenu.SetActive(true);
+        m_WinMenu.SetActive(false);
+	}
+	
+	// Update is called once per frame
+	private void Update()
+    {
+        //If the game already had an initial setup
+        if (GameplayManager.Instance.IsInitialized)
         {
-            transform.GetChild(i).gameObject.SetActive(value);
+            if (Input.GetButtonDown("MenuOpen"))
+            {
+                OpenMainMenu(!m_MainMenu.activeInHierarchy);
+            }
+
+            if (Input.GetButtonDown("MenuCancel"))
+            {
+                OpenMainMenu(false);
+            }
         }
-    }
+	}
 
-    public void StartGame()
+    public void OpenMainMenu(bool value)
     {
-        GameplayManager.Instance.StartGame();
-        OpenMenu(false);
-    }
+        m_MainMenu.SetActive(value);
 
-    public string IncreasePlayerCount()
-    {
-        GameplayManager gamePlayManager = GameplayManager.Instance;
-
-        gamePlayManager.IncreasePlayerCount();
-        return gamePlayManager.CurrentPlayersCount + " Players";
-    }
-
-    public string IncreaseGameMode()
-    {
-        GameplayManager gamePlayManager = GameplayManager.Instance;
-        gamePlayManager.IncreaseGameMode();
-
-        if (gamePlayManager.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
+        if (value == false && m_IsWinMenuOpen)
         {
-            return "Single bullet";
+            m_WinMenu.SetActive(true);
         }
 
-        if (gamePlayManager.CurrentGameMode == GameplayManager.GameMode.InvisibleMode)
+        if (value == true)
         {
-            return "Invisible";
+            m_IsWinMenuOpen = m_WinMenu.activeInHierarchy;
+            m_WinMenu.SetActive(false);
         }
+    }
 
-        return "";
+    public void OpenWinMenu(bool value, string name = "")
+    {
+        if (value) m_WinMenu.GetComponent<WinMenu>().SetName(name);
+
+        if (m_MainMenu.activeInHierarchy)
+        {
+            m_IsWinMenuOpen = value;
+        }
+        else
+        {
+            m_WinMenu.SetActive(value);
+        }
+    }
+
+    public bool IsMenuOpen()
+    {
+        if (m_MainMenu.activeInHierarchy) return true;
+        if (m_WinMenu.activeInHierarchy)  return true;
+
+        return false;
     }
 }

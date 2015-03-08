@@ -8,8 +8,10 @@ public delegate void IntDelegate(int i);
 public delegate int  IntReturnIntDelegate(int i);
 public delegate void FloatDelegate(float f);
 public delegate void StringDelegate(string s);
+public delegate void StringIntDelegate(string s, int i);
 public delegate void ColorDelegate(Color color);
 public delegate void SubStageDelegate(SubStage subStage);
+public delegate void SubStageBoolDelegate(SubStage subStage, bool b);
 public delegate void SubStageColorDelegate(SubStage subStage, Color col);
 
 public class Tank : MonoBehaviour
@@ -17,7 +19,6 @@ public class Tank : MonoBehaviour
     //Events
     public event VoidDelegate OnRespawn;
     public event BoolDelegate OnEnableRenderer;
-    public event IntDelegate OnHit;
     public event FloatDelegate OnAlphaChange;
     public event ColorDelegate OnColorChange;
 
@@ -83,13 +84,13 @@ public class Tank : MonoBehaviour
 
     private void Update()
     {
+        if (IsDead || !InputEnabled || MenuManager.Instance.IsMenuOpen()) return;
+
         //Set names (for fun)
         if (Input.GetButtonDown("SetName1_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Stijn"; }
         if (Input.GetButtonDown("SetName2_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Daniel"; }
         if (Input.GetButtonDown("SetName3_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Freek"; }
-        if (Input.GetButtonDown("SetName4_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Marijke"; }
-
-        if (IsDead || !InputEnabled) return;
+        if (Input.GetButtonDown("SetName4_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Maarten"; }
 
         //Rotating
         float xAxis = Input.GetAxis("RotateHorizontal_Joystick" + (m_PlayerID + 1));
@@ -113,8 +114,6 @@ public class Tank : MonoBehaviour
     public void Damage(int amount, int otherPlayerID)
     {
         if (IsDead || !InputEnabled) return;
-
-        if (OnHit != null) OnHit(otherPlayerID);
 
         //You can't die from your own bullets right now
         if (m_PlayerID == otherPlayerID) // && GameplayManager.Instance.CurrentGameMode == global::GameplayManager.GameMode.SingleBulletMode
@@ -143,7 +142,8 @@ public class Tank : MonoBehaviour
             GameplayManager.Instance.UpdateGame(killerID, deltaScore);
         }
 
-        StartCoroutine(DeathRoutine());
+        StartCoroutine(DeathRoutine()); //rotate around
+        StartCoroutine(VisibilityRoutine(m_InvinsibleSpeed / 3.0f, true)); //Fade out
     }
 
     public void Respawn(Transform newTransform)
@@ -158,6 +158,8 @@ public class Tank : MonoBehaviour
         m_InvisibleTimer = 0.0f; //Set to zero so the coroutine gets started
         SetVisible();
         m_InvisibleTimer = 2.0f; //Set to 2 so we go invisible quicker right after spawn
+
+        EnableColliders(true);
 
         if (OnRespawn != null) OnRespawn();
     }
@@ -186,7 +188,7 @@ public class Tank : MonoBehaviour
 
         if (GameplayManager.Instance.CurrentGameMode != GameplayManager.GameMode.InvisibleMode) return;
 
-        if (m_InvisibleTimer == 0.0f) { StartCoroutine(VisibilityRoutine()); }
+        if (m_InvisibleTimer == 0.0f) { StartCoroutine(VisibilityRoutine(m_InvinsibleSpeed, false)); }
         else                          { m_InvisibleTimer = m_InvinsibleSpeed; }
     }
 
@@ -194,6 +196,20 @@ public class Tank : MonoBehaviour
     {
         gameObject.GetComponent<SpriteRenderer>().enabled = value;
         if (OnEnableRenderer != null) OnEnableRenderer(value);
+    }
+
+    public void EnableColliders(bool value)
+    {
+        for (int i = 0; i < transform.childCount; ++i)
+        {
+            GameObject child = transform.GetChild(i).gameObject;
+            Collider2D collider = child.GetComponent<Collider2D>();
+
+            if (collider != null)
+            {
+                child.SetActive(value);
+            }
+        }
     }
 
     public void SetColor(Color color)
@@ -214,10 +230,10 @@ public class Tank : MonoBehaviour
         if (OnAlphaChange != null) OnAlphaChange(alpha);
     }
 
-    private IEnumerator VisibilityRoutine()
+    private IEnumerator VisibilityRoutine(float speed, bool disableColliders)
     {
         EnableRenderer(true);
-        m_InvisibleTimer = m_InvinsibleSpeed;
+        m_InvisibleTimer = speed;
 
         while (m_InvisibleTimer > 0.0f)
         {
@@ -236,6 +252,8 @@ public class Tank : MonoBehaviour
 
         m_InvisibleTimer = 0.0f;
         EnableRenderer(false);
+
+        if (disableColliders) { EnableColliders(false); }
     }
     #endregion
 }
