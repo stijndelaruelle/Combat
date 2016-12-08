@@ -3,15 +3,29 @@ using System.Collections;
 
 public class rotate : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
+	internal Vector3 euler;
+	//uint frames;
+
 	// Update is called once per frame
-	void Update () {
-		Vector3 euler = transform.localEulerAngles;
-		euler.z += 2f;
-		transform.localEulerAngles = euler;
+	private void Start () {
+		StartCoroutine(rotateNow());
+	}
+
+
+	private IEnumerator rotateNow(){
+		 while (true){
+			
+			euler = transform.localEulerAngles;
+
+			yield return null;
+			
+			euler.z += 2f;
+
+
+			transform.localEulerAngles = euler;
+
+			yield return new WaitForEndOfFrame();
+		}
+
 	}
 }

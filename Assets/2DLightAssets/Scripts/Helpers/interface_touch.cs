@@ -2,7 +2,9 @@
 using System.Collections;
 
 public class interface_touch: MonoBehaviour {
-	
+
+	public float speed = 3f;
+
 	GameObject cLight;
 	GameObject cubeL;
 	
@@ -13,16 +15,26 @@ public class interface_touch: MonoBehaviour {
 	[HideInInspector] public static int vertexCount;
 
 
-	
-	// Update is called once per frame
-	void Update () {
+	IEnumerator Start(){
 		cLight = GameObject.Find("2DLight");
-		//if(Input.GetAxis("Horizontal")){
-		//light.transform.position = new Vector3 (Input.mousePosition.x -Screen.width*.5f, Input.mousePosition.y -Screen.height*.5f);
-		Vector3 pos = cLight.transform.position;
-		pos.x += Input.GetAxis ("Horizontal") * 3f * Time.deltaTime;
-		pos.y += Input.GetAxis ("Vertical") * 3f * Time.deltaTime;
-		cLight.transform.position = pos;
+		yield return null;
+		StartCoroutine (LoopUpdate ());
+	}
+
+	// Update is called once per frame
+	IEnumerator LoopUpdate () {
+		while (true) {
+
+			//if(Input.GetAxis("Horizontal")){
+			//light.transform.position = new Vector3 (Input.mousePosition.x -Screen.width*.5f, Input.mousePosition.y -Screen.height*.5f);
+			Vector3 pos = cLight.transform.position;
+			pos.x += Input.GetAxis ("Horizontal") * speed * Time.deltaTime;
+			pos.y += Input.GetAxis ("Vertical") * speed * Time.deltaTime;
+			yield return new WaitForEndOfFrame();
+			cLight.transform.position = pos;
+
+		}
+
 
 	}
 

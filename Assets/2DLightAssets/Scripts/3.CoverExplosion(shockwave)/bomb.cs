@@ -3,7 +3,7 @@ using System.Collections;
 
 public class bomb : MonoBehaviour {
 
-	DynamicLight thisLight;
+	DynamicLight2D.DynamicLight thisLight;
 	TimerClass timer;
 	GameObject player;
 
@@ -12,8 +12,8 @@ public class bomb : MonoBehaviour {
 	Vector3 pos;
 
 
-	void Start () {
-		thisLight = GameObject.Find("2DLight").GetComponent<DynamicLight>();
+	IEnumerator Start () {
+		thisLight = GameObject.Find("2DLight").GetComponent<DynamicLight2D.DynamicLight>();
 		player = GameObject.Find("MartinHead");
 
 		timer = gameObject.AddComponent<TimerClass>();
@@ -23,23 +23,33 @@ public class bomb : MonoBehaviour {
 		timer.OnUpdateTimerEvent += timerUpdate;
 		timer.OnTargetTimerEvent += tick;
 
-		timer.InitTimer(1f, true);
+		timer.InitTimer(1.2f, true);
 
-
+		StartCoroutine(LoopUpdate());
+	
+		yield return  null;
 
 	}
 
 
-	void Update(){
+		IEnumerator LoopUpdate(){
 
-		pos.x += Input.GetAxis ("Horizontal") * 20f * Time.deltaTime;
-		pos.y += Input.GetAxis ("Vertical") * 20f * Time.deltaTime;
-		thisLight.gameObject.transform.position = pos;
+		while(true){
+			pos.x += Input.GetAxis ("Horizontal") * 20f * Time.deltaTime;
+			pos.y += Input.GetAxis ("Vertical") * 20f * Time.deltaTime;
+			
 
-		Vector3 martinPos = Input.mousePosition;
-		martinPos = Camera.main.ScreenToWorldPoint(martinPos);
-		martinPos.z = 0;
-		player.transform.position = martinPos;
+			Vector3 martinPos = Input.mousePosition;
+			martinPos = Camera.main.ScreenToWorldPoint(martinPos);
+			martinPos.z = 0;
+
+
+			yield return new WaitForEndOfFrame();
+			thisLight.gameObject.transform.position = pos;
+			player.transform.position = martinPos;
+		}
+
+		
 
 
 
@@ -47,10 +57,10 @@ public class bomb : MonoBehaviour {
 
 	
 	void tick(){
-		thisLight.lightRadius = 1.7f;
+		thisLight.LightRadius = 1.7f;
 		tmpValue *=0;
 	}
 	void timerUpdate(float value){
-		thisLight.lightRadius += value*.8f;
+	thisLight.LightRadius += value*.8f;
 	}
 }

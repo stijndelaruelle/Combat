@@ -51,11 +51,16 @@ public class Bullet : MonoBehaviour
     {
         for (int i = 0; i < transform.childCount; ++i)
         {
-            Material material = transform.GetChild(i).gameObject.renderer.material;
+            Renderer renderer = transform.GetChild(i).gameObject.GetComponent<Renderer>();
 
-            if (material != null)
+            if (renderer != null)
             {
-                material.color = color;
+                Material material = renderer.material;
+
+                if (material != null)
+                {
+                    material.color = color;
+                }
             }
         }
     }
@@ -82,7 +87,9 @@ public class Bullet : MonoBehaviour
         //It's a wall, let's bounce!
         if (m_Bounces > 0 || GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
         {
-            Reflect(collision.contacts[0].normal);
+            ContactPoint2D contact = collision.contacts[0];
+            transform.position = new Vector3(contact.point.x, contact.point.y, 0.0f);
+            Reflect(contact.normal);
 
             return;
         }

@@ -8,7 +8,7 @@ public class interface_manager: MonoBehaviour {
 
 	GameObject cLight;
 	GameObject cubeL;
-	Camera cam;
+	//Camera cam;
 	
 
 
@@ -20,7 +20,7 @@ public class interface_manager: MonoBehaviour {
 
 	void Start () {
 
-		cam = GameObject.Find("Camera").GetComponent<Camera>();
+		//cam = GameObject.Find("Camera").GetComponent<Camera>();
 
 		Application.targetFrameRate = 60;
 
@@ -40,21 +40,25 @@ public class interface_manager: MonoBehaviour {
 
 		if (Input.GetMouseButtonDown (0)) {
 
-			Vector2 p = cam.ScreenToWorldPoint(Input.mousePosition);
+			Vector2 p = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
 
 			//if(Input.GetKey(KeyCode.LeftControl) == true){
-				Material m = new Material( cLight.GetComponent<DynamicLight>().lightMaterial as Material); 
+				Material m = new Material( cLight.GetComponent<DynamicLight2D.DynamicLight>().LightMaterial as Material); 
 				
 
 				GameObject nLight = new GameObject("2DLight" + (lightCount + 1));
+				nLight.transform.position = Vector3.zero;
 				nLight.transform.parent = cLight.transform;
+				nLight.transform.position = transform.InverseTransformPoint(new Vector3(p.x,p.y,0));
 				
-				nLight.AddComponent<DynamicLight>();
+				nLight.AddComponent<DynamicLight2D.DynamicLight>();
 				//m.color = new Color(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f));
-				nLight.GetComponent<DynamicLight>().lightMaterial = m;
-				nLight.transform.position = p;
-				nLight.GetComponent<DynamicLight>().lightRadius = 40;
-				nLight.GetComponent<DynamicLight>().Layer = cLight.GetComponent<DynamicLight>().Layer;
+				nLight.GetComponent<DynamicLight2D.DynamicLight>().LightMaterial = m;
+				
+				nLight.GetComponent<DynamicLight2D.DynamicLight>().LightRadius = 40;
+				nLight.GetComponent<DynamicLight2D.DynamicLight>().Layer = cLight.GetComponent<DynamicLight2D.DynamicLight>().Layer;
+				nLight.GetComponent<DynamicLight2D.DynamicLight>().staticScene = true;
 				
 				GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
 				quad.transform.parent = nLight.transform;
@@ -67,14 +71,14 @@ public class interface_manager: MonoBehaviour {
 
 		}
 
-		int totalV = cLight.GetComponent<DynamicLight>().vertexWorking;
-		for (int i =1; i< lightCount; i++){
-			totalV += cLight.transform.FindChild("2DLight" + (i+1)).gameObject.GetComponent<DynamicLight>().vertexWorking;
-		}
+		//int totalV = cLight.GetComponent<DynamicLight>().vertexWorking;
+		//for (int i =1; i< lightCount; i++){
+		//	totalV += cLight.transform.FindChild("2DLight" + (i+1)).gameObject.GetComponent<DynamicLight>().vertexWorking;
+		//}
 
 
-		UIlights.text = "Lights: " + lightCount;
-		UIvertex.text = "Working Vertexes: " + totalV;
+		//UIlights.text = "Lights: " + lightCount;
+		//UIvertex.text = "Working Vertexes: " + totalV;
 	
 	}
 

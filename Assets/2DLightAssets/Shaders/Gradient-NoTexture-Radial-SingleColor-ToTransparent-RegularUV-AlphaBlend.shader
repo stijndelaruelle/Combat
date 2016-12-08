@@ -1,4 +1,4 @@
-Shader "Gradient/No Texture/Radial/Single-Color/To Transparent/Regular UV/Alpha Blend" {
+Shader "2D Dynamic Lights/RadialGradient/AlphaBlend" {
 
 	//Set up the shader to receive external inputs from Unity
 	Properties {
@@ -8,7 +8,6 @@ Shader "Gradient/No Texture/Radial/Single-Color/To Transparent/Regular UV/Alpha 
 		_UVXScale ("UV X Scale", float) = 1.0			//Receive input from UV X scale
 		_UVYScale ("UV Y Scale", float) = 1.0			//Receive input from UV Y scale
 		_Offset ("Offset", float) = 0					//Receive input from a float
-		_GradientSteps ("Gradient Steps", int) = 0		//Number of gradient steps
 	}
 
 	//Define a shader
@@ -50,7 +49,6 @@ Shader "Gradient/No Texture/Radial/Single-Color/To Transparent/Regular UV/Alpha 
 			uniform float _UVXScale;
 			uniform float _UVYScale;
 			uniform float _Offset;
-			uniform int _GradientSteps;
 		
 			//Data structure communication from Unity to the vertex shader
 			//Defines what inputs the vertex shader accepts
@@ -84,15 +82,8 @@ Shader "Gradient/No Texture/Radial/Single-Color/To Transparent/Regular UV/Alpha 
 			}
 
 			//Fragment shader
-			fixed4 frag(VertexToFragment i) : COLOR
-			{
-				fixed4 finalColor = lerp(_Color, fixed4(_Color.rgb, 0), sqrt((i.uv.x*i.uv.x) + (i.uv.y*i.uv.y)) +_Offset);
-
-				//Make the alpha go in layers
-				finalColor.a = ceil(finalColor.a * _GradientSteps);
-				finalColor.a /= _GradientSteps;
-
-				return finalColor;	//Output radial gradient
+			fixed4 frag(VertexToFragment i) : COLOR {
+				return fixed4(lerp(_Color,fixed4(_Color.rgb,0),sqrt( (i.uv.x*i.uv.x)+(i.uv.y*i.uv.y) )+_Offset ));	//Output radial gradient
 			}
 
 			ENDCG							//End of CG program

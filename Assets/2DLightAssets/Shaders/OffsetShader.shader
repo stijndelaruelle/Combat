@@ -1,4 +1,4 @@
-﻿Shader "Custom/OffsetShader" {
+﻿Shader "2D Dynamic Lights/OffsetShader" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
 	}

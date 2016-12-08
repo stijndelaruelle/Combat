@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using XBOXParty;
 
 //Delegates
 public delegate void VoidDelegate();
@@ -80,6 +81,17 @@ public class Tank : MonoBehaviour
     private void Start()
     {
         m_PlayerName = "Player " + (m_PlayerID + 1);
+
+        //Bind controls
+        InputManager.Instance.BindAxis("Deadzone_RotateHorizontal_" + m_PlayerID, m_PlayerID, ControllerAxisCode.LeftStickX);
+        InputManager.Instance.BindAxis("Deadzone_RotateVertical_" + m_PlayerID, m_PlayerID, ControllerAxisCode.LeftStickY);
+    }
+
+    private void OnDestroy()
+    {
+        //Unbind controls    
+        InputManager.Instance.UnbindAxis("Deadzone_RotateHorizontal_" + m_PlayerID);
+        InputManager.Instance.UnbindAxis("Deadzone_RotateVertical_" + m_PlayerID);
     }
 
     private void Update()
@@ -87,14 +99,14 @@ public class Tank : MonoBehaviour
         if (IsDead || !InputEnabled || MenuManager.Instance.IsMenuOpen()) return;
 
         //Set names (for fun)
-        if (Input.GetButtonDown("SetName1_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Stijn"; }
-        if (Input.GetButtonDown("SetName2_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Daniel"; }
-        if (Input.GetButtonDown("SetName3_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Freek"; }
-        if (Input.GetButtonDown("SetName4_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Maarten"; }
+        //if (Input.GetButtonDown("SetName1_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Stijn"; }
+        //if (Input.GetButtonDown("SetName2_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Daniel"; }
+        //if (Input.GetButtonDown("SetName3_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Freek"; }
+        //if (Input.GetButtonDown("SetName4_Joystick" + (m_PlayerID + 1))) { m_PlayerName = "Maarten"; }
 
         //Rotating
-        float xAxis = Input.GetAxis("RotateHorizontal_Joystick" + (m_PlayerID + 1));
-        float yAxis = Input.GetAxis("RotateVertical_Joystick" + (m_PlayerID + 1));
+        float xAxis = InputManager.Instance.GetAxis("Deadzone_RotateHorizontal_" + m_PlayerID);
+        float yAxis = InputManager.Instance.GetAxis("Deadzone_RotateVertical_" + m_PlayerID);
 
         float currentAngle = transform.rotation.eulerAngles.z;
         float desired = Mathf.Atan2(yAxis, xAxis) * Mathf.Rad2Deg;

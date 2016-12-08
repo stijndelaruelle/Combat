@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using XBOXParty;
 
 public class Barrel : MonoBehaviour
 {
@@ -33,6 +34,13 @@ public class Barrel : MonoBehaviour
         m_PlayerID = m_Parent.PlayerID;
 
         m_LastRotation = m_Parent.gameObject.transform.localRotation;
+
+        //Bind axis
+        InputManager.Instance.BindAxis("Deadzone_AimHorizontal_" + m_PlayerID, m_PlayerID, ControllerAxisCode.RightStickX);
+        InputManager.Instance.BindAxis("Deadzone_AimVertical_" + m_PlayerID, m_PlayerID, ControllerAxisCode.RightStickY);
+
+        InputManager.Instance.BindAxis("Deadzone_ShootLeft_" + m_PlayerID, m_PlayerID, ControllerAxisCode.LeftTrigger);
+        InputManager.Instance.BindAxis("Deadzone_ShootRight_" + m_PlayerID, m_PlayerID, ControllerAxisCode.RightTrigger);
     }
 
     private void Destroy()
@@ -42,6 +50,13 @@ public class Barrel : MonoBehaviour
         m_Parent.OnEnableRenderer -= OnParentEnableRenderer;
         m_Parent.OnColorChange -= OnParentColorChange;
         m_Parent.OnAlphaChange -= OnParentAlphaChange;
+
+        //Unbind axis
+        InputManager.Instance.UnbindAxis("Deadzone_AimHorizontal_" + m_PlayerID);
+        InputManager.Instance.UnbindAxis("Deadzone_AimVertical_" + m_PlayerID);
+
+        InputManager.Instance.UnbindAxis("Deadzone_ShootLeft_" + m_PlayerID);
+        InputManager.Instance.UnbindAxis("Deadzone_ShootRight_" + m_PlayerID);
     }
 
     private void Update()
@@ -58,8 +73,8 @@ public class Barrel : MonoBehaviour
         transform.rotation = m_LastRotation;
 
         //Rotating
-        float xAxis = Input.GetAxis("AimHorizontal_Joystick" + (m_PlayerID + 1));
-        float yAxis = Input.GetAxis("AimVertical_Joystick" + (m_PlayerID + 1));
+        float xAxis = InputManager.Instance.GetAxis("Deadzone_AimHorizontal_" + m_PlayerID);
+        float yAxis = InputManager.Instance.GetAxis("Deadzone_AimVertical_" + m_PlayerID);
 
         float currentAngle = transform.rotation.eulerAngles.z;
         float desired = Mathf.Atan2(yAxis, xAxis) * Mathf.Rad2Deg;
@@ -80,15 +95,18 @@ public class Barrel : MonoBehaviour
             return;
         }
 
-        float shootAxis = Input.GetAxis("Shoot_Joystick" + (m_PlayerID + 1));
+        float shootAxisLeft = InputManager.Instance.GetAxis("Deadzone_ShootLeft_" + m_PlayerID);
+        float shootAxisRight = InputManager.Instance.GetAxis("Deadzone_ShootRight_" + m_PlayerID);
 
-#if UNITY_EDITOR
-        if (shootAxis == 0.0f && m_PlayerID == 1)
-        {
-            bool db = Input.GetButtonDown("ShootDebug");
-            if (db) shootAxis = 11.0f;
-        }
-#endif
+        float shootAxis = Mathf.Max(shootAxisLeft, shootAxisRight);
+
+        //#if UNITY_EDITOR
+        //        if (shootAxis == 0.0f && m_PlayerID == 1)
+        //        {
+        //            bool db = Input.GetButtonDown("ShootDebug");
+        //            if (db) shootAxis = 11.0f;
+        //        }
+        //#endif
 
         if (shootAxis != 0.0f && m_IsReloading == false)
         {
@@ -110,7 +128,8 @@ public class Barrel : MonoBehaviour
             GameObject obj = GameObject.Instantiate(m_BulletPrefab, spawnPos, transform.rotation) as GameObject;
             Bullet bullet = obj.GetComponent<Bullet>();
 
-            Color color = gameObject.GetComponent<SpriteRenderer>().color;
+            //Colour ourselves just like our parent
+            Color color = gameObject.transform.parent.GetComponent<SpriteRenderer>().color;
             color.a = 1.0f;
             bullet.SetColor(color);
 

@@ -83,8 +83,8 @@ public class GameplayManager : MonoBehaviour
         }
 
         //Hide the mouse
-        Screen.showCursor = false;
-        Screen.lockCursor = true;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Start()

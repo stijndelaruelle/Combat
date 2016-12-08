@@ -1,4 +1,4 @@
-Shader "Gradient/ZFighting" {
+Shader "2D Dynamic Lights/Gradient/ZFighting" {
 
 	//Set up the shader to receive external inputs from Unity
 	Properties {

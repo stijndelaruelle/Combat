@@ -1,5 +1,45 @@
 fileFormatVersion: 2
 guid: 96d9e957918c6644b889f435d2e0792d
+labels:
+- light
+- 2dLight
+- martin
+- ysa
+- 2d
+- 2dsystem
+- system
+- shadow
+- 2dshadow
+- shadows
+- realtime
+- dynamic
+- free
+- gpu
+- lighting
+- kit
+- tool
+- smooth
+- shine
+- dark
+- umbra
+- penumbra
+- volumetric
+- draganddrop
+- drag
+- and
+- drop
+- vision
+- field
+- fieldofview
+- view
+- lineofsight
+- sight
+- occlusion
+- effect
+- 2dshadows
+- hit
+- bomb
+- wysiwyg
 TextureImporter:
   fileIDToRecycleName: {}
   serializedVersion: 2
@@ -20,17 +60,22 @@ TextureImporter:
   isReadable: 0
   grayScaleToAlpha: 0
   generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 8
+  cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
   textureFormat: -1
   maxTextureSize: 1024
   textureSettings:
-    filterMode: -1
+    filterMode: 1
     aniso: 1
     mipBias: -1
     wrapMode: 1
   nPOTScale: 0
   lightmap: 0
+  rGBM: 0
   compressionQuality: 50
+  allowsAlphaSplitting: 0
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
@@ -45,3 +90,5 @@ TextureImporter:
     sprites: []
   spritePackingTag: 
   userData: 
+  assetBundleName: 
+  assetBundleVariant: 

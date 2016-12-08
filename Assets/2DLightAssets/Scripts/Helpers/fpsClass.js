@@ -5,6 +5,7 @@ var updateInterval = 0.5;
 private var accum = 0.0; // FPS accumulated over the interval
 private var frames = 0; // Frames drawn over the interval
 private var timeleft : float; // Left time for current interval
+
  
 function Start()
 {

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using XBOXParty;
 
 public class MenuManager : MonoBehaviour
 {
@@ -47,20 +48,29 @@ public class MenuManager : MonoBehaviour
     {
         m_MainMenu.SetActive(true);
         m_WinMenu.SetActive(false);
-	}
-	
-	// Update is called once per frame
-	private void Update()
+
+        InputManager.Instance.BindButton("Deadzone_MenuOpen", 0, ControllerButtonCode.Start, ButtonState.OnPress);
+        InputManager.Instance.BindButton("Deadzone_MenuCancel", 0, ControllerButtonCode.B, ButtonState.OnPress);
+    }
+
+    private void OnDestroy()
+    {
+        InputManager.Instance.UnbindButton("Deadzone_MenuOpen");
+        InputManager.Instance.UnbindButton("Deadzone_MenuCancel");
+    }
+
+    // Update is called once per frame
+    private void Update()
     {
         //If the game already had an initial setup
         if (GameplayManager.Instance.IsInitialized)
         {
-            if (Input.GetButtonDown("MenuOpen"))
+            if (InputManager.Instance.GetButton("Deadzone_MenuOpen"))
             {
                 OpenMainMenu(!m_MainMenu.activeInHierarchy);
             }
 
-            if (Input.GetButtonDown("MenuCancel"))
+            if (InputManager.Instance.GetButton("Deadzone_MenuCancel"))
             {
                 OpenMainMenu(false);
             }

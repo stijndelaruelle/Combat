@@ -4,7 +4,7 @@ Direct3D:
     Version:  Direct3D 11.0 [level 11.0]
     Renderer: NVIDIA GeForce GTX 780 (ID=0x1004)
     Vendor:   NVIDIA
-    VRAM:     2994 MB
+    VRAM:     3039 MB
 Begin MonoManager ReloadAssembly
 Platform assembly: E:\Unity Projects\combat\Builds\1.2\Deadzone_1.2_Data\Managed\UnityEngine.dll (this message is harmless)
 Loading E:\Unity Projects\combat\Builds\1.2\Deadzone_1.2_Data\Managed\UnityEngine.dll into Unity Child Domain

@@ -3,35 +3,42 @@ using System.Collections;
 
 public class ReachedEventManager : MonoBehaviour {
 
-	DynamicLight light2d;
-	//GameObject myGO;
+	DynamicLight2D.DynamicLight light2d;
 	GameObject[] GOsReached;
 	TextMesh text;
 
 
 
-	// Use this for initialization
+
 	void Start () {
-		light2d = GameObject.Find("2DLight").GetComponent<DynamicLight>() as DynamicLight;
-		//myGO = GameObject.Find("hexagon");
+		// Find and set 2DLight Object //
+				light2d = GameObject.Find("2DLight").GetComponent<DynamicLight2D.DynamicLight>() as DynamicLight2D.DynamicLight;
+
+		// Find and set text obj //
 		text = GameObject.Find("text").GetComponent<TextMesh>();
 
-		// Add listener
-		light2d.OnReachedGameObjects += waveReach;
-
-
+		// Add listeners
+		light2d.InsideFieldOfViewEvent += waveReach;
+		light2d.OnExitFieldOfView += onExitCaster;
+		light2d.OnEnterFieldOfView += onEnterCaster;
 
 	}
 
 
 
+	//- this function iterate in each object passed by 2DLigh script and compare if this object is the player
+	//-- game object --//
 
-	void waveReach(GameObject[] g){
+	//-- THIS SCRIPT MUST BE ATTACHED TO PLAYER GO --//
+
+	void waveReach(GameObject[] g, DynamicLight2D.DynamicLight light){
 
 		bool found = false;
 		string gsName = "";
 
 		foreach(GameObject gs in g){
+			//Debug.Log(" id: " + gs.GetInstanceID());
+
 			if(gameObject.GetInstanceID() == gs.GetInstanceID()){
 				found = true;
 				gsName = gs.name;
@@ -43,6 +50,16 @@ public class ReachedEventManager : MonoBehaviour {
 			text.text = "in safe place";
 		}
 
+
+	}
+
+
+	void onExitCaster(GameObject g, DynamicLight2D.DynamicLight light){
+		Debug.Log("OnExit");
+	}
+
+	void onEnterCaster(GameObject g, DynamicLight2D.DynamicLight light){
+		Debug.Log("OnEnter");
 	}
 
 

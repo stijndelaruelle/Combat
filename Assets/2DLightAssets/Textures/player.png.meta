@@ -14,6 +14,32 @@ labels:
 - realtime
 - dynamic
 - free
+- gpu
+- lighting
+- kit
+- tool
+- smooth
+- shine
+- dark
+- umbra
+- penumbra
+- volumetric
+- draganddrop
+- drag
+- and
+- drop
+- vision
+- field
+- fieldofview
+- view
+- lineofsight
+- sight
+- occlusion
+- effect
+- 2dshadows
+- hit
+- bomb
+- wysiwyg
 TextureImporter:
   fileIDToRecycleName: {}
   serializedVersion: 2
@@ -34,6 +60,9 @@ TextureImporter:
   isReadable: 0
   grayScaleToAlpha: 0
   generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 8
+  cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
   textureFormat: -1
   maxTextureSize: 1024
@@ -44,7 +73,9 @@ TextureImporter:
     wrapMode: 1
   nPOTScale: 0
   lightmap: 0
+  rGBM: 0
   compressionQuality: 50
+  allowsAlphaSplitting: 0
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
@@ -59,3 +90,5 @@ TextureImporter:
     sprites: []
   spritePackingTag: 
   userData: 
+  assetBundleName: 
+  assetBundleVariant: 

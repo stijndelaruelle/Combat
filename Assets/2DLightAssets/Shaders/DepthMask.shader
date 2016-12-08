@@ -1,4 +1,4 @@
-Shader "Masked/Mask" {
+Shader "2D Dynamic Lights/Masked/Mask" {
     
     SubShader {
         // Render the mask after regular geometry, but before masked geometry and
