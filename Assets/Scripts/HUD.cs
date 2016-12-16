@@ -20,7 +20,7 @@ public class HUD : MonoBehaviour
     {
         GameplayManager gameplayManager = GameplayManager.Instance;
 
-        gameplayManager.OnStartGame += OnStartGame;
+        gameplayManager.OnStartCountDown += OnStartCountDown;
         gameplayManager.OnResetGame += OnResetGame;
         gameplayManager.OnUpdateScore += OnUpdateScore;
         gameplayManager.OnGenerateMap += OnGenerateMap;
@@ -43,7 +43,7 @@ public class HUD : MonoBehaviour
         }
         m_Map.Clear();
 
-        AddSubStageIcon(startStage, Vector2.zero);
+        AddSubStageIcon(startStage, m_SubStageIconPrefab.GetComponent<RectTransform>().anchoredPosition);
 
         m_Map[startStage].SetContested(true);
 
@@ -62,7 +62,7 @@ public class HUD : MonoBehaviour
         //Add the icon
         GameObject newObject = GameObject.Instantiate(m_SubStageIconPrefab) as GameObject;
         newObject.transform.SetParent(gameObject.transform);
-        newObject.transform.localPosition = pos;
+        newObject.transform.GetComponent<RectTransform>().anchoredPosition = pos;
         newObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
 
         SubStageIcon subStageIcon = newObject.GetComponent<SubStageIcon>();
@@ -133,7 +133,7 @@ public class HUD : MonoBehaviour
     }
 
     //Winner & score
-    public void OnStartGame(int playerCount)
+    public void OnStartCountDown(int playerCount)
     {
         //Reset the scores
         for (int i = 0; i < m_Textfields.Count; ++i)

@@ -20,6 +20,9 @@ public class Barrel : MonoBehaviour
     private bool m_IsReloading = false;
     private Tank m_Parent = null;
 
+    private float m_LastTriggerValue = 0.0f;
+    private float m_TriggerValue = 0.0f;
+
     //Functions
     private void Start()
     {
@@ -61,10 +64,13 @@ public class Barrel : MonoBehaviour
 
     private void Update()
     {
-        if (m_Parent.IsDead || !m_Parent.InputEnabled) return;
+        if (m_Parent.IsDead)
+            return;
 
         HandleRotating();
-        HandleShooting();
+
+        if (m_Parent.InputEnabled)
+            HandleShooting();
     }
 
     private void HandleRotating()
@@ -98,17 +104,11 @@ public class Barrel : MonoBehaviour
         float shootAxisLeft = InputManager.Instance.GetAxis("Deadzone_ShootLeft_" + m_PlayerID);
         float shootAxisRight = InputManager.Instance.GetAxis("Deadzone_ShootRight_" + m_PlayerID);
 
-        float shootAxis = Mathf.Max(shootAxisLeft, shootAxisRight);
+        m_LastTriggerValue = m_TriggerValue;
+        m_TriggerValue = Mathf.Max(shootAxisLeft, shootAxisRight);
 
-        //#if UNITY_EDITOR
-        //        if (shootAxis == 0.0f && m_PlayerID == 1)
-        //        {
-        //            bool db = Input.GetButtonDown("ShootDebug");
-        //            if (db) shootAxis = 11.0f;
-        //        }
-        //#endif
-
-        if (shootAxis != 0.0f && m_IsReloading == false)
+        //Only shoot when you go over half of the trigger
+        if (m_LastTriggerValue < 0.5f && m_TriggerValue > 0.5f && m_IsReloading == false)
         {
             //Calculate spawn position
             Vector3 offset = transform.right * 90.0f * Time.deltaTime;

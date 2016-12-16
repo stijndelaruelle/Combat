@@ -13,6 +13,7 @@ public class GameplayManager : MonoBehaviour
 
     //Events
     public event IntDelegate OnStartGame;
+    public event IntDelegate OnStartCountDown;
     public event VoidDelegate OnResetGame;
     public event IntDelegate OnUpdateScore;
 
@@ -99,22 +100,48 @@ public class GameplayManager : MonoBehaviour
         if (m_2PlayerStage != null) m_2PlayerStage.Activate();
     }
 
-    public void StartGame()
+    public void StartCountDown()
     {
         //Select the right stage & reset the game
         if (m_CurrentPlayerCount == 2) { m_StartStage = m_2PlayerStage; }
-        else                           { m_StartStage = m_4PlayerStage; }
+        else { m_StartStage = m_4PlayerStage; }
 
         m_CurrentStage = m_StartStage;
         if (OnGenerateMap != null) OnGenerateMap(m_CurrentStage, (m_CurrentPlayerCount == 2));
 
-        //We only restart if we have the same amount of players
-        if (OnStartGame != null) OnStartGame(m_CurrentPlayerCount);
-        
         ResetGame();
+
+        //Disable all player input
+        foreach (Tank player in m_Players)
+        {
+            player.InputEnabled = false;
+        }
+
+        StopAllCoroutines();
+        StartCoroutine(CountDownRoutine(3));
     }
 
-    public void ResetGame()
+    private IEnumerator CountDownRoutine(int secondsLeft)
+    {
+        OnStartCountDown(secondsLeft);
+        yield return new WaitForSeconds(secondsLeft);
+
+        StartGame();
+    }
+
+    private void StartGame()
+    {
+        //We only restart if we have the same amount of players
+        if (OnStartGame != null) OnStartGame(m_CurrentPlayerCount);
+
+        //Disable all player input
+        foreach (Tank player in m_Players)
+        {
+            player.InputEnabled = true;
+        }
+    }
+
+    private void ResetGame()
     {
         StopAllCoroutines();
 

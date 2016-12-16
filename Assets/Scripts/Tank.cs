@@ -249,14 +249,17 @@ public class Tank : MonoBehaviour
 
         while (m_InvisibleTimer > 0.0f)
         {
-            m_InvisibleTimer -= Time.deltaTime;
-
-            //The last second our alpha goes fading
-            if (m_InvisibleTimer <= 1.0f)
+            if (InputEnabled)
             {
-                //Grade down in 3 steps
-                float newAlpha = Mathf.Ceil(m_InvisibleTimer * 3.0f) / 3.0f;
-                SetAlpha(newAlpha);
+                m_InvisibleTimer -= Time.deltaTime;
+
+                //The last second our alpha goes fading
+                if (m_InvisibleTimer <= 1.0f)
+                {
+                    //Grade down in 3 steps
+                    float newAlpha = Mathf.Ceil(m_InvisibleTimer * 3.0f) / 3.0f;
+                    SetAlpha(newAlpha);
+                }
             }
 
             yield return new WaitForEndOfFrame();

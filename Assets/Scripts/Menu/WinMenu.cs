@@ -25,6 +25,6 @@ public class WinMenu : MonoBehaviour
 
     public void RestartGame()
     {
-        GameplayManager.Instance.ResetGame();
+        GameplayManager.Instance.StartCountDown();
     }
 }

@@ -45,9 +45,9 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    public void StartGame()
+    public void StartCountDown()
     {
-        GameplayManager.Instance.StartGame();
+        GameplayManager.Instance.StartCountDown();
         OpenMenu(false);
     }
 
