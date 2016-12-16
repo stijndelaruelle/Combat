@@ -142,10 +142,10 @@ public class Barrel : MonoBehaviour
             //Start reloading
             m_IsReloading = true;
 
-            if (GameplayManager.Instance.CurrentGameMode != GameplayManager.GameMode.SingleBulletMode)
-            {
-                StartCoroutine(ReloadRoutine(m_ReloadSpeed));
-            }
+            //if (GameplayManager.Instance.CurrentGameMode != GameplayManager.GameMode.SingleBulletMode)
+            //{
+            //    StartCoroutine(ReloadRoutine(m_ReloadSpeed));
+            //}
         }
     }
 
@@ -187,16 +187,21 @@ public class Barrel : MonoBehaviour
     public void OnBulletHit(int otherID)
     {
         //When a bullet we fired hit someone this is called
-        if (GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
-        {
+        //if (GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
+        //{
             if (m_PlayerID != otherID)
             {
-                StartCoroutine(ReloadRoutine(m_ReloadSpeed / 4.0f));
+                StartCoroutine(ReloadRoutine(m_ReloadSpeed));
             }
             else
             {
                 m_IsReloading = false;
             }
-        }
+        //}
+    }
+
+    public void OnBulletDestroyed()
+    {
+        m_IsReloading = false;
     }
 }

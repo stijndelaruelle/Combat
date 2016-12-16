@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent (typeof(CircleCollider2D))]
 public class Bullet : MonoBehaviour
 {
     //Datamembers
@@ -22,13 +23,14 @@ public class Bullet : MonoBehaviour
         set { m_OwnerID = value; }
     }
 
-    private Barrel m_OwnerBarrel = null; //The barrel that show me, for on hit callback
+    private Barrel m_OwnerBarrel = null; //The barrel that shot me, for on hit callback
     public Barrel OwnerBarrel
     {
         get { return m_OwnerBarrel; }
         set { m_OwnerBarrel = value; }
     }
 
+    private float m_Radius = 0.0f;
     private Collider2D m_LastCollider = null;
 
     //Functions
@@ -36,6 +38,8 @@ public class Bullet : MonoBehaviour
     {
         m_MoveSpeed = m_MaxMoveSpeed;
         m_Bounces = m_MaxBounces;
+
+        m_Radius = gameObject.GetComponent<CircleCollider2D>().radius;
     }
 
     private void Update()
@@ -43,8 +47,87 @@ public class Bullet : MonoBehaviour
         //Moving
         Vector2 velocity = transform.right * m_MoveSpeed * Time.deltaTime;
         transform.Translate(velocity, Space.World);
+    }
 
-        Debug.DrawRay(new Vector2(transform.position.x, transform.position.y), new Vector2(transform.right.x, transform.right.y));
+    private void FixedUpdate()
+    {
+        Debug.DrawLine(transform.position, transform.position + (transform.forward * 3.0f), Color.red);
+        Debug.DrawLine(transform.position, transform.position + (transform.right * 3.0f), Color.green);
+
+        PredictCollision();
+    }
+
+    private void PredictCollision()
+    {
+        LayerMask layerMask1 = 1 << LayerMask.NameToLayer("ShadowLayer");
+        LayerMask layerMask2 = 1 << LayerMask.NameToLayer("Bullet");
+        LayerMask combiLayerMask = ~(layerMask1 | layerMask2);
+
+        //Minimum distance
+        float distance = m_MoveSpeed * Time.deltaTime;
+        if (distance < (m_Radius * 2)) { distance = m_Radius * 2; }
+
+        RaycastHit2D hit = Physics2D.Raycast(new Vector2(transform.position.x - (transform.right.x * m_Radius), transform.position.y - (transform.right.y * m_Radius)), //Start at the back of the circle
+                                             new Vector2(transform.right.x, transform.right.y),
+                                             distance, combiLayerMask);
+
+        if (hit)
+        {
+            if (hit.collider == m_LastCollider) { return; }
+            m_LastCollider = hit.collider;
+
+            //Next frame we are going to hit something
+            if (hit.collider.gameObject.tag == "Player")
+            {
+                Tank tank = hit.collider.gameObject.transform.GetComponent<Tank>();
+
+                m_OwnerBarrel.OnBulletHit(tank.PlayerID);
+                tank.Damage(m_Damage, m_OwnerID);
+
+                //Destroy ourselves
+                m_OwnerBarrel.OnBulletDestroyed();
+                GameObject.Destroy(gameObject);
+                return;
+            }
+
+            //It's a wall, let's bounce!
+            if (m_Bounces > 0 || GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
+            {
+                Debug.DrawLine(hit.point, hit.point + (hit.normal * 3.0f), Color.cyan, 5.0f);
+
+                if (hit.normal == -new Vector2(transform.right.x, transform.right.y) &&
+                    hit.normal != new Vector2(0.0f, 1.0f) &&
+                    hit.normal != new Vector2(0.0f, -1.0f) &&
+                    hit.normal != new Vector2(1.0f, 0.0f) &&
+                    hit.normal != new Vector2(-1.0f, 0.0f))
+                {
+                    Debug.Log("WRONG REFLECT NORMAL, recalculating...");
+
+                    //Shoot it backwards, and see what we encounter
+                    hit = Physics2D.Raycast(hit.point,
+                                            new Vector2(-transform.right.x, -transform.right.y),
+                                            distance, combiLayerMask);
+                }
+
+
+                if (hit.normal == -new Vector2(transform.right.x, transform.right.y) &&
+                    hit.normal != new Vector2(0.0f, 1.0f) &&
+                    hit.normal != new Vector2(0.0f, -1.0f) &&
+                    hit.normal != new Vector2(1.0f, 0.0f) &&
+                    hit.normal != new Vector2(-1.0f, 0.0f))
+                {
+                    Debug.Log("WRONG REFLECT NORMAL AGAIN");
+                }
+
+                Reflect(hit.normal);
+
+                return;
+            }
+
+            //No more bounces, let's just destroy ourselves
+            m_OwnerBarrel.OnBulletDestroyed();
+            GameObject.Destroy(gameObject);
+        }
     }
 
     public void SetColor(Color color)
@@ -67,11 +150,7 @@ public class Bullet : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //Avoid weird clipping in wall issues
-        if (collision.collider == m_LastCollider) { return; }
-        m_LastCollider = collision.collider;
-
-        //If it's a player, damage him
+        //Only used for player collision, bouncing is predicted in PredictCollision
         if (collision.gameObject.tag == "Player")
         {
             Tank tank = collision.gameObject.transform.GetComponent<Tank>();
@@ -83,19 +162,6 @@ public class Bullet : MonoBehaviour
             GameObject.Destroy(gameObject);
             return;
         }
-
-        //It's a wall, let's bounce!
-        if (m_Bounces > 0 || GameplayManager.Instance.CurrentGameMode == GameplayManager.GameMode.SingleBulletMode)
-        {
-            ContactPoint2D contact = collision.contacts[0];
-            transform.position = new Vector3(contact.point.x, contact.point.y, 0.0f);
-            Reflect(contact.normal);
-
-            return;
-        }
-
-        //No more bounces, let's just 
-        GameObject.Destroy(gameObject);
     }
 
     private void Reflect(Vector3 normal)
