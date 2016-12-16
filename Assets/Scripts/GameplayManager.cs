@@ -12,15 +12,18 @@ public class GameplayManager : MonoBehaviour
     }
 
     //Events
-    public event IntDelegate OnStartGame;
+    public event VoidDelegate OnStartGame;
     public event IntDelegate OnStartCountDown;
     public event VoidDelegate OnResetGame;
     public event IntDelegate OnUpdateScore;
+
+    public event IntDelegate OnPlayerCountChange;
 
     public event SubStageBoolDelegate OnGenerateMap;
     public event SubStageColorDelegate OnUpdateMap;
 
     //Datamembers
+    private int m_LastPlayerCount = 2;
     private int m_CurrentPlayerCount = 2;
     public int CurrentPlayersCount
     {
@@ -119,6 +122,14 @@ public class GameplayManager : MonoBehaviour
 
         StopAllCoroutines();
         StartCoroutine(CountDownRoutine(3));
+
+
+        if (OnPlayerCountChange != null &&
+            m_LastPlayerCount != m_CurrentPlayerCount)
+        {
+            OnPlayerCountChange(m_CurrentPlayerCount);
+            m_LastPlayerCount = m_CurrentPlayerCount;
+        }
     }
 
     private IEnumerator CountDownRoutine(int secondsLeft)
@@ -132,7 +143,7 @@ public class GameplayManager : MonoBehaviour
     private void StartGame()
     {
         //We only restart if we have the same amount of players
-        if (OnStartGame != null) OnStartGame(m_CurrentPlayerCount);
+        if (OnStartGame != null) OnStartGame();
 
         //Disable all player input
         foreach (Tank player in m_Players)
@@ -285,7 +296,7 @@ public class GameplayManager : MonoBehaviour
     {
         ++m_CurrentPlayerCount;
 
-        //Never go over 2 players
+        //Never go over 4 players
         if (m_CurrentPlayerCount > m_Players.Length)
         {
             m_CurrentPlayerCount = 2;

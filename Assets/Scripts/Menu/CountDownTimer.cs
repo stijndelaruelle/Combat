@@ -70,7 +70,7 @@ public class CountDownTimer : MonoBehaviour
         Show();
     }
 
-    private void OnStartGame(int playerCount)
+    private void OnStartGame()
     {
         Hide();
     }

@@ -20,11 +20,12 @@ public class HUD : MonoBehaviour
     {
         GameplayManager gameplayManager = GameplayManager.Instance;
 
-        gameplayManager.OnStartCountDown += OnStartCountDown;
         gameplayManager.OnResetGame += OnResetGame;
         gameplayManager.OnUpdateScore += OnUpdateScore;
         gameplayManager.OnGenerateMap += OnGenerateMap;
         gameplayManager.OnUpdateMap += OnUpdateMap;
+
+        gameplayManager.OnPlayerCountChange += OnPlayerCountChange;
 
         //Init scores
         m_Scores = new List<int>();
@@ -133,7 +134,7 @@ public class HUD : MonoBehaviour
     }
 
     //Winner & score
-    public void OnStartCountDown(int playerCount)
+    private void OnPlayerCountChange(int playerCount)
     {
         //Reset the scores
         for (int i = 0; i < m_Textfields.Count; ++i)
@@ -143,7 +144,8 @@ public class HUD : MonoBehaviour
 
             //Enable of disable some score labels
             bool active = false;
-            if (i < playerCount) { active = true; }
+
+            if (i < GameplayManager.Instance.CurrentPlayersCount) { active = true; }
             m_Textfields[i].gameObject.SetActive(active);
         }
     }
