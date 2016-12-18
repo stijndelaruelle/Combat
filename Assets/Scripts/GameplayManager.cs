@@ -101,6 +101,8 @@ public class GameplayManager : MonoBehaviour
 
         //Set the first 2 player map as active
         if (m_2PlayerStage != null) m_2PlayerStage.Activate();
+
+        Camera.main.GetComponent<CameraPanner>().OnCameraPanComplete += OnCameraPanComplete;
     }
 
     public void StartCountDown()
@@ -175,6 +177,9 @@ public class GameplayManager : MonoBehaviour
 
     private void PrepareNextStage(bool instant = false)
     {
+        //Disable current level objects (for the visual effect)
+        if (m_LastStage!= null) m_LastStage.Deactivate();
+
         //Set the camera
         Vector3 newPosition = m_CurrentStage.transform.position;
         newPosition.z = Camera.main.transform.position.z;
@@ -183,18 +188,12 @@ public class GameplayManager : MonoBehaviour
         if (instant) time = 0.0f;
         Camera.main.GetComponent<CameraPanner>().PanCamera(newPosition, time);
 
-        //Respawn all the active
-        for (int i = 0; i < m_CurrentPlayerCount; ++i)
+        //Respawn all the active players
+        for (int i = 0; i < m_Players.Length; ++i)
         {
-            m_Players[i].gameObject.SetActive(true);
+            bool active = (i < m_CurrentPlayerCount);
+            m_Players[i].gameObject.SetActive(active);
             m_Players[i].Respawn(m_CurrentStage.GetSpawnTransform(i));
-            m_Players[i].InputEnabled = true;
-        }
-
-        //Decativate the rest
-        for (int i = m_CurrentPlayerCount; i < m_Players.Length; ++i)
-        {
-            m_Players[i].gameObject.SetActive(false);
         }
 
         //Remove all the bullets
@@ -218,12 +217,6 @@ public class GameplayManager : MonoBehaviour
         if (playersAlive > 1)
         {
             return;
-        }
-
-        //Disable input for a bit
-        foreach (Tank player in m_Players)
-        {
-            player.InputEnabled = false;
         }
 
         //Update the game
@@ -281,15 +274,38 @@ public class GameplayManager : MonoBehaviour
 
     private IEnumerator PrepareStageRoutine(int winnerID)
     {
+        //Disable input for a bit
+        foreach (Tank player in m_Players)
+        {
+            player.InputEnabled = false;
+        }
+
+        //We wait a bit..
         yield return new WaitForSeconds(m_Players[0].InvisibleSpeed);
 
-        m_LastStage.Deactivate();
-        m_CurrentStage.Activate();
         if (OnUpdateMap != null) OnUpdateMap(m_CurrentStage, m_Players[winnerID].CurrentColor);
 
         PrepareNextStage();
     }
 
+    private void OnCameraPanComplete()
+    {
+        StartCoroutine(CameraPanCompleteRoutine());
+    }
+
+    private IEnumerator CameraPanCompleteRoutine()
+    {
+        m_CurrentStage.Activate();
+
+        //We wait a bit so the players can get ready
+        yield return new WaitForSeconds(0.25f);
+
+        //Enable input
+        foreach (Tank player in m_Players)
+        {
+            player.InputEnabled = true;
+        }
+    }
 
     //Called from main menu
     public void IncreasePlayerCount()

@@ -29,8 +29,11 @@ public class CountDownTimer : MonoBehaviour
 
     private void OnDestroy()
     {
-        GameplayManager.Instance.OnStartCountDown -= OnStartCountDown;
-        GameplayManager.Instance.OnStartGame -= OnStartGame;
+        GameplayManager instance = GameplayManager.Instance;
+        if (instance == null) return;
+
+        instance.OnStartCountDown -= OnStartCountDown;
+        instance.OnStartGame -= OnStartGame;
     }
 
     private void Update()

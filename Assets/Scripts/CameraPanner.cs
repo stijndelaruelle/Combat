@@ -3,6 +3,8 @@ using System.Collections;
 
 public class CameraPanner : MonoBehaviour
 {
+    public event VoidDelegate OnCameraPanComplete;
+
     public void PanCamera(Vector3 newPos, float speed = 0.0f)
     {
         StopAllCoroutines();
@@ -30,6 +32,9 @@ public class CameraPanner : MonoBehaviour
         }
 
         transform.position = targetPos;
+
+        if (OnCameraPanComplete != null) OnCameraPanComplete();
+
         yield return null;
     }
 }

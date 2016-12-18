@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent (typeof(CircleCollider2D))]
 public class Bullet : MonoBehaviour
@@ -95,6 +96,7 @@ public class Bullet : MonoBehaviour
             {
                 Debug.DrawLine(hit.point, hit.point + (hit.normal * 3.0f), Color.cyan, 5.0f);
 
+                //This shouldn't be required, but somehow it is. (works for now, fix later)
                 if (hit.normal == -new Vector2(transform.right.x, transform.right.y) &&
                     hit.normal != new Vector2(0.0f, 1.0f) &&
                     hit.normal != new Vector2(0.0f, -1.0f) &&
@@ -103,13 +105,14 @@ public class Bullet : MonoBehaviour
                 {
                     Debug.Log("WRONG REFLECT NORMAL, recalculating...");
 
-                    //Shoot it backwards, and see what we encounter
-                    hit = Physics2D.Raycast(hit.point,
-                                            new Vector2(-transform.right.x, -transform.right.y),
-                                            distance, combiLayerMask);
+                    //put the bullet back at last frame's position & check again.
+                    hit = Physics2D.Raycast(new Vector2(transform.position.x - (transform.right.x * distance), transform.position.y - (transform.right.y * distance)),
+                                            new Vector2(transform.right.x, transform.right.y),
+                                            distance * 2.0f, combiLayerMask);
+
+                    hit.normal = -hit.normal;
                 }
-
-
+                
                 if (hit.normal == -new Vector2(transform.right.x, transform.right.y) &&
                     hit.normal != new Vector2(0.0f, 1.0f) &&
                     hit.normal != new Vector2(0.0f, -1.0f) &&
@@ -161,6 +164,26 @@ public class Bullet : MonoBehaviour
             //Destroy ourselves
             GameObject.Destroy(gameObject);
             return;
+        }
+        else
+        {
+            if (collision.collider == m_LastCollider) { return; }
+            m_LastCollider = collision.collider;
+
+            //Take the average normal between all the contacts
+            Vector2 averageNormal = Vector3.zero;
+
+            for (int i = 0; i < collision.contacts.Length; ++i)
+            {
+                averageNormal.x += collision.contacts[i].normal.x;
+                averageNormal.y += collision.contacts[i].normal.y;
+            }
+
+            averageNormal.x /= collision.contacts.Length;
+            averageNormal.y /= collision.contacts.Length;
+
+            Reflect(averageNormal);
+            Debug.Log("Alternative collision method used.");
         }
     }
 
