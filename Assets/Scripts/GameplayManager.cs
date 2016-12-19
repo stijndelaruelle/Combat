@@ -34,7 +34,8 @@ public class GameplayManager : MonoBehaviour
     private Tank[] m_Players;
 
     [SerializeField]
-    private GameMode m_GameMode = GameMode.InvisibleMode;
+    private GameMode m_LastGameMode = GameMode.SingleBulletMode;
+    private GameMode m_GameMode = GameMode.SingleBulletMode;
     public GameMode CurrentGameMode
     {
         get { return m_GameMode; }
@@ -125,13 +126,18 @@ public class GameplayManager : MonoBehaviour
         StopAllCoroutines();
         StartCoroutine(CountDownRoutine(3));
 
-
+        //Reset scores on playercount or gamemode change
         if (OnPlayerCountChange != null &&
             m_LastPlayerCount != m_CurrentPlayerCount)
         {
             OnPlayerCountChange(m_CurrentPlayerCount);
             m_LastPlayerCount = m_CurrentPlayerCount;
         }
+
+        //if (m_LastGameMode != m_GameMode)
+        //{
+        //    OnPlayerCountChange(m_CurrentPlayerCount);
+        //}
     }
 
     private IEnumerator CountDownRoutine(int secondsLeft)
@@ -321,6 +327,8 @@ public class GameplayManager : MonoBehaviour
 
     public void IncreaseGameMode()
     {
+        m_LastGameMode = m_GameMode;
+
         if (m_GameMode == GameplayManager.GameMode.SingleBulletMode)
         {
             m_GameMode = GameplayManager.GameMode.InvisibleMode;

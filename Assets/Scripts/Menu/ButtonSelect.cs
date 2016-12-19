@@ -12,7 +12,7 @@ public class ButtonSelect : MonoBehaviour, ISelectHandler
         if (m_ArrowTransform == null) return;
 
         Vector3 currentPos = m_ArrowTransform.localPosition;
-        currentPos.y = transform.localPosition.y;
+        currentPos = new Vector3(transform.localPosition.x - 75.0f, transform.localPosition.y, transform.localPosition.z);
         m_ArrowTransform.localPosition = currentPos;
     }
 }
